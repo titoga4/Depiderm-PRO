@@ -1,69 +1,1084 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DEPIDERM ADMIN</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f6f4f1">
+  <title>DEPIDERM ADMIN · Premium Online v1.0</title>
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f7f5f3;
-      color: #333;
+    :root {
+      --bg: #f7f6f3; --white: #fff; --ink: #282c2b; --muted: #81827e;
+      --line: #ebe9e3; --brand: #85685b; --brand-dark: #694b3e;
+      --brand-soft: #f3ebe6; --red: #b14c46; --red-bg: #f9e8e5;
+      --amber: #9c752f; --amber-bg: #fbf2df; --green: #39816b; --green-bg: #eaf4ee;
+      --shadow: 0 12px 34px rgba(45, 39, 33, .035);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-    header {
-      background: #ffffff;
-      padding: 25px;
-      text-align: center;
-      border-bottom: 1px solid #e5ded8;
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid #d3b8a9; outline-offset: 2px; }
+    button:disabled { opacity: .48; cursor: not-allowed; }
+    .app { display: flex; min-height: 100vh; }
+    .sidebar { width: 246px; flex-shrink: 0; background: #fff; border-right: 1px solid var(--line); display: flex; flex-direction: column; padding: 33px 18px 18px; position: sticky; top: 0; height: 100vh; }
+    .wordmark { padding: 3px 16px 35px; }
+    .wordmark strong { display: block; font-family: Georgia, 'Times New Roman', serif; font-size: 27px; letter-spacing: 1.5px; font-weight: 500; }
+    .wordmark small { letter-spacing: 3.7px; font-size: 9px; color: var(--brand); font-weight: 750; }
+    .nav-heading { text-transform: uppercase; letter-spacing: 1.6px; color: #a8a7a1; font-size: 10px; font-weight: 800; margin: 8px 15px 14px; }
+    .nav { display: grid; gap: 7px; }
+    .nav button { border: 0; background: transparent; text-align: left; border-radius: 11px; color: #666965; padding: 13px 15px; display: flex; gap: 13px; align-items: center; font-weight: 650; font-size: 13px; }
+    .nav button.active { color: var(--brand-dark); background: #f3ece8; }
+    .nav button:hover { background: #f6f3f0; }
+    .nav button svg { width: 19px; height: 19px; flex-shrink: 0; }
+    .nav-count { margin-left: auto; background: var(--red-bg); color: var(--red); padding: 3px 7px; border-radius: 7px; font-size: 11px; }
+    .sidebar-end { margin-top: auto; padding: 16px 12px 2px; font-size: 11px; color: #979893; line-height: 1.6; border-top: 1px solid var(--line); }
+    .sidebar-end strong { display: block; color: #676761; font-size: 12px; margin-bottom: 4px; }
+    .main { flex: 1; min-width: 0; }
+    .topbar { height: 92px; background: #ffffffcb; backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); padding: 0 48px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .section-label { color: var(--muted); letter-spacing: 1.7px; text-transform: uppercase; font-size: 10px; font-weight: 800; margin-bottom: 4px; }
+    .topbar-title { font-size: 17px; font-weight: 700; }
+    .topbar-actions { display: flex; align-items: center; gap: 12px; }
+    .date-top { font-size: 12px; color: var(--muted); margin-right: 6px; text-transform: capitalize; }
+    .btn { display: inline-flex; justify-content: center; align-items: center; gap: 8px; padding: 12px 17px; border-radius: 10px; border: 1px solid var(--line); color: #686661; background: #fff; font-size: 12px; font-weight: 750; transition: .15s ease; white-space: nowrap; }
+    .btn:hover { transform: translateY(-1px); border-color: #d5c4b8; }
+    .btn.primary { background: var(--brand); color: white; border-color: var(--brand); }
+    .btn.primary:hover { background: var(--brand-dark); }
+    .btn.danger { background: #fff8f7; color: var(--red); border-color: #ebc5c0; }
+    .btn.sm { padding: 8px 12px; font-size: 11px; }
+    .btn svg { width: 16px; height: 16px; }
+    .content { padding: 39px 48px 55px; max-width: 1520px; margin: auto; }
+    .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 26px; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { font-family: Georgia, 'Times New Roman', serif; font-size: clamp(29px, 3.1vw, 39px); font-weight: 500; letter-spacing: -.8px; margin-bottom: 9px; }
+    .subtitle { color: #878783; font-size: 13px; line-height: 1.55; margin-bottom: 0; }
+    h2 { font-size: 17px; font-weight: 750; margin-bottom: 0; }
+    h3 { font-size: 14px; margin-bottom: 5px; }
+    .notice { background: #fcf7ec; border: 1px solid #eee0bc; border-radius: 11px; color: #806936; font-size: 12px; line-height: 1.6; padding: 12px 17px; margin-bottom: 23px; }
+    .notice strong { color: #73551a; }
+    .metrics { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 17px; margin-bottom: 27px; }
+    .metric { background: #fff; border: 1px solid var(--line); box-shadow: var(--shadow); border-radius: 15px; padding: 24px 24px 21px; min-height: 143px; }
+    .metric-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #8b8b87; font-size: 12px; font-weight: 640; }
+    .metric-icon { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; background: #f7f3ef; border-radius: 9px; color: var(--brand); }
+    .metric-icon svg { width: 18px; height: 18px; }
+    .metric .number { margin-top: 17px; font-family: Georgia, serif; font-size: 34px; font-weight: 500; line-height: 1; }
+    .metric .mini { font-size: 11px; color: #a0a09b; margin-top: 9px; }
+    .metric.urgent .number { color: var(--red); }
+    .metric.urgent .metric-icon { background: var(--red-bg); color: var(--red); }
+    .dashboard-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 19px; align-items: start; }
+    .panel { background: #fff; border: 1px solid var(--line); border-radius: 15px; box-shadow: var(--shadow); overflow: hidden; min-width: 0; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 23px 24px; border-bottom: 1px solid #f1efeb; }
+    .panel-head p { font-size: 12px; color: #9a9994; margin: 7px 0 0; }
+    .text-link { border: 0; background: transparent; font-weight: 750; font-size: 12px; color: var(--brand); padding: 7px 0; }
+    .entry { display: flex; align-items: center; gap: 13px; padding: 17px 24px; border-bottom: 1px solid #f1f0ed; min-width: 0; }
+    .entry:last-child { border-bottom: 0; }
+    .avatar { display: inline-flex; align-items: center; justify-content: center; border-radius: 12px; width: 42px; height: 42px; flex-shrink: 0; background: var(--brand-soft); color: var(--brand); font-size: 12px; font-weight: 800; }
+    .entry-main { min-width: 0; flex: 1; }
+    .entry-main strong { display: block; font-size: 13px; font-weight: 750; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .entry-main small { display: block; font-size: 11px; color: #999994; margin-top: 5px; }
+    .entry-right { text-align: right; white-space: nowrap; }
+    .entry-right strong { display: block; font-size: 12px; color: #60544d; }
+    .entry-right small { color: #9c9b96; font-size: 11px; display: block; margin-top: 6px; }
+    .pill { display: inline-flex; align-items: center; gap: 5px; border-radius: 7px; padding: 6px 9px; font-size: 10px; line-height: 1.25; font-weight: 800; }
+    .pill.red { color: var(--red); background: var(--red-bg); }
+    .pill.amber { color: var(--amber); background: var(--amber-bg); }
+    .pill.green { color: var(--green); background: var(--green-bg); }
+    .pill.neutral { color: #787b76; background: #f2f2ef; }
+    .alert-entry { padding: 17px 24px; display: flex; align-items: flex-start; gap: 13px; border-bottom: 1px solid #f1f0ed; }
+    .alert-entry:last-child { border-bottom: 0; }
+    .alert-dot { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; width: 34px; height: 34px; border-radius: 9px; background: #f9e9e6; color: var(--red); }
+    .alert-dot.amber { color: var(--amber); background: var(--amber-bg); }
+    .alert-dot.green { color: var(--green); background: var(--green-bg); }
+    .alert-dot svg { width: 17px; height: 17px; }
+    .alert-body { flex: 1; min-width: 0; }
+    .alert-body strong { display: block; font-size: 12px; font-weight: 800; }
+    .alert-body p { font-size: 11px; color: #92918c; margin: 5px 0 0; line-height: 1.5; }
+    .alert-body .action { padding: 0; margin-top: 8px; border: 0; font-size: 11px; font-weight: 800; background: transparent; color: var(--brand); }
+    .empty { padding: 47px 24px; color: #aaa8a3; text-align: center; font-size: 12px; line-height: 1.6; }
+    .empty svg { width: 27px; height: 27px; color: #c1b3a8; margin-bottom: 8px; }
+    .toolbar { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 19px; }
+    .search { display: flex; align-items: center; gap: 10px; width: min(100%,370px); padding: 0 14px; border: 1px solid #e4e3de; border-radius: 10px; background: white; }
+    .search svg { width: 18px; height: 18px; color: #aaa7a2; }
+    .search input { border: 0; outline: 0; padding: 13px 0; width: 100%; font-size: 12px; background: transparent; }
+    .filter { border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; color: #686964; background: white; font-size: 12px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
+    th { background: #fbfaf8; color: #93948e; font-weight: 800; font-size: 10px; letter-spacing: .6px; text-transform: uppercase; }
+    td, th { padding: 17px 21px; border-bottom: 1px solid #f0efed; white-space: nowrap; }
+    tr:last-child td { border-bottom: 0; }
+    td { color: #646762; }
+    td strong { color: var(--ink); font-weight: 750; }
+    tr:hover td { background: #fdfbf9; }
+    .table-name { display: flex; align-items: center; gap: 10px; }
+    .table-name .avatar { width: 34px; height: 34px; border-radius: 10px; }
+    .view-btn { border: 0; background: transparent; color: var(--brand); font-size: 11px; font-weight: 800; }
+    .calendar-toolbar { display: flex; align-items: center; gap: 14px; }
+    .calendar-toolbar strong { min-width: 147px; text-align: center; font-size: 13px; text-transform: capitalize; }
+    .icon-btn { width: 33px; height: 33px; border: 1px solid var(--line); border-radius: 9px; background: #fff; color: #827569; display: inline-flex; align-items: center; justify-content: center; }
+    .icon-btn svg { width: 17px; height: 17px; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 6px; padding: 16px; }
+    .weekday { text-align: center; font-size: 10px; font-weight: 800; color: #aaa7a1; padding: 7px 0 11px; }
+    .day { min-height: 85px; border: 1px solid transparent; border-radius: 9px; background: #fbfaf8; padding: 10px; text-align: left; color: #6d6c67; font-weight: 700; font-size: 12px; display: flex; flex-direction: column; align-items: flex-start; gap: 9px; }
+    .day:not(.blank):hover { border-color: #d6bbae; }
+    .day.blank { background: transparent; cursor: default; }
+    .day.today { border-color: #dac2b5; }
+    .day.selected { background: #f2eae5; border-color: var(--brand); color: var(--brand-dark); }
+    .day .count { background: #fff; border: 1px solid #efe5de; color: var(--brand); border-radius: 6px; font-size: 10px; padding: 5px 7px; font-weight: 800; }
+    .calendar-layout { display: grid; grid-template-columns: minmax(0,1.45fr) minmax(280px, .7fr); align-items: start; gap: 18px; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; padding: 20px 23px; }
+    .info { border: 1px solid var(--line); border-radius: 11px; padding: 14px; }
+    .info label { display: block; font-size: 10px; color: #9b9992; margin-bottom: 8px; font-weight: 650; }
+    .info div { font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
+    .sessions { display: grid; gap: 11px; padding: 20px 23px; }
+    .session { display: flex; align-items: center; gap: 12px; border: 1px solid var(--line); border-radius: 11px; padding: 14px; }
+    .session-number { background: #f2f0ec; color: #837a72; border-radius: 9px; width: 34px; height: 34px; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .session.done .session-number { color: var(--green); background: var(--green-bg); }
+    .session-main { flex: 1; min-width: 0; }
+    .session-main strong { font-size: 12px; display: block; }
+    .session-main small { font-size: 11px; color: #979892; display: block; margin-top: 5px; }
+    .session-actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+    .field { display: flex; flex-direction: column; gap: 7px; }
+    .field label { font-size: 11px; font-weight: 750; color: #686761; }
+    .field input, .field textarea, .field select { width: 100%; border: 1px solid #e6e3dd; background: #fff; padding: 13px 12px; border-radius: 9px; color: var(--ink); font-size: 13px; outline: none; }
+    .field textarea { resize: vertical; min-height: 93px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .field.full { grid-column: 1 / -1; }
+    .modal-bg { position: fixed; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center; padding: 20px; background: #28262499; backdrop-filter: blur(4px); }
+    .modal { width: min(100%, 550px); max-height: min(90vh, 850px); overflow-y: auto; background: #fff; border-radius: 18px; box-shadow: 0 30px 100px #241f1b45; }
+    .modal.wide { width: min(100%, 740px); }
+    .modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 26px 27px 20px; border-bottom: 1px solid var(--line); }
+    .modal-head h2 { font-family: Georgia, serif; font-size: 25px; font-weight: 500; margin-bottom: 6px; }
+    .modal-head p { font-size: 12px; color: #96948f; line-height: 1.45; margin-bottom: 0; }
+    .modal-body { padding: 23px 27px; }
+    .modal-foot { padding: 18px 27px 24px; display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; border-top: 1px solid var(--line); }
+    .detail-notes { white-space: pre-wrap; font-size: 12px; color: #777771; line-height: 1.7; }
+    .alert-list-stack { display: grid; gap: 15px; }
+    .alert-group { padding: 0 0 4px; }
+    .alert-group .panel-head { padding: 18px 24px; }
+    .alert-group .panel-head h2 { font-size: 14px; }
+    .mobile-brand { display: none; }
+    .small-note { font-size: 11px; line-height: 1.7; color: #98978f; }
+    /* Premium refinements and new administration modules */
+    body { background: radial-gradient(circle at 90% 0%, #f2ebe5 0, transparent 39%), #f7f6f3; }
+    .sidebar { background: linear-gradient(180deg,#fff 0%,#fff 80%,#fcf9f7 100%); }
+    .sidebar::before { content:""; position:absolute;top:0;left:0;width:100%;height:5px;background:linear-gradient(90deg,#84685b,#d2b6a4); }
+    .topbar { position:sticky;top:0;z-index:10; }
+    .topbar-title { letter-spacing:-.3px; }
+    .panel, .metric { box-shadow: 0 5px 25px rgba(61,45,33,.04); }
+    .metric, .panel { transition: border-color .18s ease, box-shadow .18s ease; }
+    .metric:hover, .panel:hover { border-color: #e4dad3;box-shadow: 0 10px 30px rgba(61,45,33,.055); }
+    .metric { position:relative;overflow:hidden; }
+    .metric::after { content:"";position:absolute;bottom:0;left:0;width:100%;height:3px;background:linear-gradient(90deg,transparent,#e2ccbd,transparent); }
+    .metric.urgent::after { background:linear-gradient(90deg,transparent,#d28c84,transparent); }
+    .hero { background: linear-gradient(112deg,#6e5144 0%,#9a7b68 64%,#bca08d 100%);border-radius:20px; padding:30px 35px; color:#fff;display:flex;align-items:center;justify-content:space-between;gap:24px; margin-bottom:25px;position:relative;overflow:hidden;isolation:isolate; }
+    .hero:after { content:"";position:absolute;z-index:-1;right:-78px;top:-110px;width:340px;height:340px;border:1px solid #ffffff45;border-radius:50%;box-shadow: 0 0 0 36px #ffffff0a,0 0 0 95px #ffffff0d; }
+    .hero .eyebrow { font-size:10px;letter-spacing:2.3px;text-transform:uppercase;color:#f1dfd1;font-weight:800; }
+    .hero h1 { color:#fff;margin:12px 0 9px;font-size:clamp(26px,2.9vw,39px); }
+    .hero p { color:#f3e7df;font-size:12px;line-height:1.6;margin:0; }
+    .hero .btn { background:#fff;border-color:#fff;color:#77584b; }
+    .hero-actions { display:flex;gap:10px;flex-wrap:wrap; }
+    .hero .btn.ghost { background:#ffffff24;border-color:#ffffff66;color:white; }
+    .stat-inline { font-size:11px;color:#eee0d7;margin-top:14px; }
+    .section-row { display:flex;align-items:center;justify-content:space-between;gap:10px;margin:16px 0; }
+    .section-row h2 { font-family:Georgia,serif;font-size:22px;font-weight:500; }
+    .action-card { background:#fff;border:1px solid var(--line);border-radius:13px;padding:18px;display:flex;align-items:center;justify-content:space-between;gap:9px; }
+    .action-card h3 { margin:0 0 6px; }
+    .action-card p { margin:0;font-size:11px;color:var(--muted);line-height:1.5; }
+    .action-card svg { color:var(--brand); }
+    .bottom-mini { display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px; }
+    .fiscal-stat {padding:21px 24px;background:#fff;border:1px solid var(--line);border-radius:15px;}
+    .fiscal-stat strong {display:block;font-family:Georgia,serif;font-size:28px;margin-top:9px;font-weight:500;color:var(--brand-dark);}
+    .fiscal-stat small {color:var(--muted);font-size:11px;}
+    .money {font-variant-numeric: tabular-nums;white-space:nowrap;}
+    .balance { color:var(--green);font-weight:800; }
+    .chip { background:#f5f0ed;border-radius:100px;padding:7px 12px;font-size:11px;font-weight:750;color:#8b6b59;display:inline-flex;align-items:center;gap:6px; }
+    .bar-chart { display:flex;align-items:end;gap:8px;height:130px;padding:18px 6px 0; }
+    .chart-col { flex:1;display:flex;align-items:center;justify-content:end;flex-direction:column;height:100%;gap:7px;min-width:0; }
+    .chart-bar { width:100%;min-width:12px;max-width:44px;min-height:3px;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,#b99b88,#876656); }
+    .chart-col small { font-size:9px;color:#9d9993; }
+    .alert-banner { background:#fff8f6;border:1px solid #f0d6d0;border-radius:11px;padding:14px 18px;color:#964a43;font-size:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px; }
+    .alert-banner button { background:transparent;border:0;color:#a44c44;text-decoration:underline;font-size:11px;font-weight:800; }
+    .progress-track { background:#eee9e3;border-radius:100px;height:6px;overflow:hidden;margin-top:8px; }
+    .progress-fill { background:linear-gradient(90deg,#a68878,#6f8e77);height:100%;border-radius:100px; }
+    .title-split { display:flex;gap:14px;align-items:center;flex-wrap:wrap; }
+    .upload-input { display:none; }
+    .toast { position:fixed;right:20px;bottom:22px;z-index:60;background:#332e2b;color:white;padding:13px 18px;box-shadow:0 12px 34px #0002;border-radius:12px;max-width:min(90vw,400px);font-size:12px; }
+    @media(max-width:580px) { .hero { padding:23px;display:block; } .hero-actions { margin-top:20px; } .bottom-mini { grid-template-columns:1fr; } .topbar { position:static; } .toast { bottom:84px; } .fiscal-stat { padding:18px; } }
+    @media(max-width:580px) {
+      .metrics[style] {grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
+      .metric .number {font-size:clamp(21px,6vw,31px);overflow-wrap:anywhere;}
+      .section-row {flex-wrap:wrap;justify-content:flex-start;}
+      .section-row h2 {width:100%;margin:0;}
+      .section-row .chip {display:none;}
+      .page-head {flex-wrap:wrap;}
+      .page-head > .btn {max-width:100%;}
     }
-    h1 { color: #967665; }
-    main {
-      max-width: 900px;
-      margin: 35px auto;
-      padding: 20px;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-    }
-    .card {
-      background: white;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 4px 15px #0000000a;
-      text-align: center;
-    }
-    .card h2 { color: #967665; }
+    .patient-balance { display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 18px;margin:5px 23px 20px;background:#fff7f5;border:1px solid #efd6d1;border-radius:12px;flex-wrap:wrap; }
+    .patient-balance strong {font-size:12px;color:var(--red);}
+    .payment-preview { display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:10px;padding:15px;border:1px solid #e8dfd8;background:#faf8f5;border-radius:12px; }
+    .payment-preview > div {padding:7px;min-width:0;}
+    .payment-preview small {display:block;color:#88817b;font-size:10px;line-height:1.4;min-height:29px;}
+    .payment-preview strong {display:block;font-size:16px;margin-top:6px;color:var(--brand-dark);}
+    .payment-preview .owing {background:#f9e6e3;border-radius:10px;}
+    .payment-preview .owing strong {color:var(--red);}
+    .area-chips { display:flex;flex-wrap:wrap;gap:7px;padding:3px 0 2px; }
+    .area-chip { border:1px solid #e8ddd6;background:#faf7f5;border-radius:100px;padding:8px 12px;font-size:11px;font-weight:700;color:#866d5e;transition:background .15s; }
+    .area-chip.active { color:#fff;background:#85685b;border-color:#85685b; }
+    .session-extra { color:#8f7b6e!important;line-height:1.6;white-space:normal;overflow-wrap:anywhere; }
+    .session-extra b {color:#736054;font-weight:750;}
+    .duration-helper { display:flex;gap:8px;align-items:center;color:#836c5f;font-size:11px;font-weight:650;line-height:1.5; }
+    .areas-hint {display:block;font-size:10px;color:#aaa29b;line-height:1.5;margin-top:3px;}
+    .session-summary {background:#faf7f4;border:1px solid #eee4dd;padding:14px;border-radius:11px;line-height:1.75;font-size:12px;color:#69574b;}
+    .session-summary strong {color:#423e39;}
+    [hidden] {display:none!important;}
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    @media(max-width: 1150px) { .metrics { grid-template-columns: repeat(2,1fr); } .dashboard-grid { grid-template-columns: 1fr; } .calendar-layout { grid-template-columns: 1fr; } }
+    @media(max-width: 800px) { .sidebar { width: 75px; padding: 20px 10px; } .wordmark { padding: 10px 2px 28px; text-align: center; } .wordmark strong { font-size: 18px; letter-spacing: 0; } .wordmark small, .nav-heading, .nav-text, .sidebar-end, .nav-count { display: none; } .nav button { justify-content: center; padding: 15px 8px; } .topbar { padding: 0 24px; } .content { padding: 30px 24px; } }
+    @media(max-width: 580px) { .app { display: block; padding-bottom: 68px; } .sidebar { position: fixed; z-index: 20; bottom: 0; top: auto; height: 64px; width: 100%; padding: 6px; border-right: 0; border-top: 1px solid var(--line); display: block; box-shadow: 0 -4px 16px #0000000c; } .wordmark { display: none; } .nav { display: flex; justify-content: space-around; align-items: center; height: 100%; gap: 2px; } .nav button { flex: 1; padding: 9px 4px; border-radius: 8px; display: grid; justify-items: center; gap: 3px; font-size: 9px; } .nav-text { display: inline; } .nav button svg { width: 18px; height: 18px; } .topbar { padding: 0 18px; height: 74px; } .topbar-title { font-size: 14px; } .date-top { display: none; } .topbar .btn { padding: 10px 11px; } .topbar .btn .btn-label { display: none; } .content { padding: 25px 16px; } .page-head { align-items: flex-start; } .page-head h1 { font-size: 31px; } .metrics { gap: 10px; } .metric { min-height: 124px; padding: 17px; } .metric-top { font-size: 11px; } .metric .number { font-size: 30px; margin-top: 12px; } .panel-head { padding: 17px; } .entry, .alert-entry { padding: 14px 16px; } .entry-right { max-width: 110px; } .calendar-grid { padding: 7px; gap: 3px; } .day { min-height: 58px; padding: 7px 5px; font-size: 10px; gap: 6px; } .day .count { padding: 3px 5px; font-size: 9px; } .weekday { font-size: 9px; } .calendar-toolbar { gap: 6px; } .calendar-toolbar strong { min-width: 115px; font-size: 11px; } .session { align-items: flex-start; flex-wrap: wrap; } .session-actions { width: 100%; justify-content: flex-start; padding-left: 46px; } .form-grid { grid-template-columns: 1fr; } .modal-bg { padding: 8px; } .modal-head, .modal-body { padding: 19px; } .modal-foot { padding: 17px 19px; } .info-grid { padding: 15px; } }
+
+    .auth-screen { min-height:100vh; display:grid; place-items:center; padding:28px 16px;
+       background: radial-gradient(circle at 17% 20%,#efe6dd 0,transparent 42%),radial-gradient(circle at 85% 80%,#eee4df 0,transparent 40%),#f7f5f1; }
+    .auth-card { width:min(100%,440px); border:1px solid #e7e2d9; background:#ffffffed; border-radius:22px; padding:45px 43px 35px; box-shadow:0 24px 80px #473b2c16; }
+    .auth-brand { font-family:Georgia,'Times New Roman',serif; font-size:43px; letter-spacing:1px; text-align:center;color:#3f3732; }
+    .auth-brand span { color:#b59a86; }
+    .auth-kicker { text-align:center; letter-spacing:2.5px; color:#987d6b; font-weight:750; font-size:9px;margin-top:8px; }
+    .auth-divider {width:44px;height:1px;background:#cbb5a5;margin:31px auto 22px;}
+    .auth-card h1 {font-size:29px;font-family:Georgia,serif;font-weight:500;margin:0 0 9px;text-align:center;}
+    .auth-subtitle {color:#8c8580;font-size:13px;line-height:1.7;text-align:center;margin:0 0 29px;}
+    .auth-form {display:grid;gap:10px;}
+    .auth-form label {text-transform:uppercase;letter-spacing:1px;color:#8b817b;font-size:10px;font-weight:800;margin-top:5px;}
+    .auth-form input {width:100%;border:1px solid #e8e3de;background:#fdfbf9;border-radius:10px;padding:14px;font-size:14px;}
+    .auth-submit {border:0;background:#866b5c;color:white;padding:15px;border-radius:10px;font-weight:750;margin-top:13px;}
+    .auth-submit:hover {background:#6e5142;}
+    .auth-submit:disabled {opacity:.55;}
+    .auth-error {min-height:17px;color:#b14c46;font-size:12px;text-align:center;margin:5px 0;line-height:1.4;}
+    .auth-footer {font-size:11px;color:#99928b;text-align:center;padding-top:16px;border-top:1px solid #ede9e3;line-height:1.6;}
+    .sync-status {font-size:11px;color:#53775c;border:1px solid #d4e8d9;background:#f0f8f2;border-radius:50px;padding:6px 10px;white-space:nowrap;}
+    .sync-status.error {color:#a4433c;background:#fff1ee;border-color:#f3cbc4;}
+    .sync-status.busy {color:#876c3d;background:#fff9ea;border-color:#efe0bd;}
+    .auth-warning {background:#fff5ed;border:1px solid #efd8bf;border-radius:12px;color:#835b39;padding:13px;font-size:12px;line-height:1.5;}
+    @media(max-width:580px){.auth-card{padding:35px 24px 24px;}.auth-brand{font-size:35px;}.sync-status{display:none;}}
   </style>
 </head>
 <body>
-  <header>
-    <h1>DEPIDERM ADMIN</h1>
-    <p>Sistema de administración</p>
-  </header>
-  <main>
-    <h2>Panel principal</h2>
-    <div class="grid">
-      <div class="card">
-        <h2>Agenda</h2>
-        <p>Control de citas</p>
-      </div>
-      <div class="card">
-        <h2>Clientes</h2>
-        <p>Registro de clientes</p>
-      </div>
-      <div class="card">
-        <h2>Pagos</h2>
-        <p>Control de ingresos</p>
-      </div>
-      <div class="card">
-        <h2>Estadísticas</h2>
-        <p>Resumen del negocio</p>
-      </div>
+  <section id="authScreen" class="auth-screen" aria-labelledby="loginTitle">
+    <div class="auth-card">
+      <div class="auth-brand">depiderm<span>.</span></div>
+      <div class="auth-kicker">ADMINISTRACIÓN · ACCESO PRIVADO</div>
+      <div class="auth-divider"></div>
+      <h1 id="loginTitle">Bienvenidos</h1>
+      <p class="auth-subtitle">Una agenda, una caja y el seguimiento completo de los tratamientos.</p>
+      <form id="loginForm" class="auth-form">
+        <label for="loginUser">Usuario</label>
+        <input id="loginUser" name="username" autocomplete="username" value="Admin" required>
+        <label for="loginPass">Contraseña</label>
+        <input id="loginPass" name="password" type="password" autocomplete="current-password" placeholder="Tu contraseña de acceso" required>
+        <button class="auth-submit" id="loginButton" type="submit">Ingresar a DEPIDERM</button>
+        <p class="auth-error" id="authError" role="alert" aria-live="polite"></p>
+      </form>
+      <div class="auth-footer" id="configNotice">Acceso exclusivo para los socios autorizados.</div>
     </div>
-  </main>
+  </section>
+  <div class="app" id="appRoot" hidden>
+    <aside class="sidebar">
+      <div class="wordmark"><strong>depiderm<span style="color:#9a7d6d">.</span></strong><small>ADMINISTRACIÓN</small></div>
+      <div class="nav-heading">MENÚ PRINCIPAL</div>
+      <nav class="nav" aria-label="Navegación principal">
+        <button type="button" data-view="dashboard" class="active"><span data-icon="layout"></span><span class="nav-text">Resumen</span></button>
+        <button type="button" data-view="agenda"><span data-icon="calendar"></span><span class="nav-text">Agenda</span></button>
+        <button type="button" data-view="patients"><span data-icon="users"></span><span class="nav-text">Pacientes</span></button>
+        <button type="button" data-view="alerts"><span data-icon="bell"></span><span class="nav-text">Alertas</span><span id="navCount" class="nav-count" style="display:none"></span></button>
+        <button type="button" data-view="payments"><span data-icon="wallet"></span><span class="nav-text">Caja</span></button>
+      </nav>
+      <div class="sidebar-end"><strong>DEPIDERM ADMIN · ONLINE v1.0</strong>Agenda y caja en línea. Acceso compartido mediante autenticación segura.</div>
+    </aside>
+    <div class="main">
+      <header class="topbar">
+        <div><div class="section-label">CENTRO DE CONTROL</div><div id="topbarTitle" class="topbar-title">Resumen general</div></div>
+        <div class="topbar-actions"><div class="date-top" id="dateTop"></div><span id="syncStatus" class="sync-status">Conectando…</span><button class="btn sm" type="button" data-action="logout" title="Cerrar sesión">Salir</button><button class="btn primary" type="button" data-action="new-patient"><span data-icon="plus"></span><span class="btn-label">Ingresar paciente</span></button></div>
+      </header>
+      <div id="content" class="content"></div>
+    </div>
+  </div>
+  <div id="modalMount"></div>
+  <input type="file" id="restoreInput" accept="application/json,.json" class="upload-input" aria-label="Importar copia de prueba">
+  <div id="toastMount" aria-live="polite"></div>
+  <div id="liveStatus" aria-live="polite" class="sr-only"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./config.js"></script>
+<script>
+(() => {
+  'use strict';
+
+  // DEPIDERM ONLINE · Supabase Auth + Row Level Security + revision-based writes.
+  const ONLINE_CONFIG = window.DEPIDERM_CONFIG || {};
+  let onlineClient = null;
+  let onlineReady = false;
+  let currentRevision = 0;
+  let saveTimer = null;
+  let saving = false;
+  let dirty = false;
+  let conflict = false;
+  let lastSaveError = false;
+  let realtimeChannel = null;
+  const EMPTY_STATE = () => ({patients:[],payments:[],charges:[],settings:{posPct:0,bankPct:0}});
+  function syncLabel(text, kind='') {
+    const el=document.getElementById('syncStatus');
+    if(el){el.textContent=text;el.className='sync-status '+kind;}
+  }
+  function cloudSnapshot() {
+    return JSON.parse(JSON.stringify({patients,payments,charges,settings}));
+  }
+  function scheduleCloudSave() {
+    if (!onlineReady || conflict) {
+      if(conflict)syncLabel('Conflicto sin resolver','error');
+      return;
+    }
+    dirty=true;
+    syncLabel('Guardando…','busy');
+    if(saveTimer)clearTimeout(saveTimer);
+    saveTimer=setTimeout(()=>{saveTimer=null;flushCloudSave();},320);
+  }
+  async function flushCloudSave() {
+    if (!onlineReady || !dirty || saving || conflict) return;
+    if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}
+    saving=true;
+    dirty=false;
+    const snapshot=cloudSnapshot();
+    const expected=currentRevision;
+    syncLabel('Sincronizando…','busy');
+    try {
+      const {data,error}=await onlineClient.rpc('save_depiderm_state',{p_payload:snapshot,p_expected_revision:expected});
+      if(error)throw error;
+      currentRevision=Number(data);
+      lastSaveError=false;
+      if(!dirty)syncLabel('Sincronizado');
+    } catch(err) {
+      lastSaveError=true;
+      dirty=true;
+      const text=String(err?.message||'');
+      if(text.includes('CONFLICTO_DE_VERSION') || err?.code==='P0001') {
+        conflict=true;
+        syncLabel('Conflicto entre dispositivos','error');
+        document.getElementById('modalMount').innerHTML='';
+        showModal('Cambios simultáneos','Otra persona modificó la agenda o la caja desde otro dispositivo.',
+          `<div class="auth-warning"><strong>No se guardó este último cambio.</strong> Para evitar perder datos de forma silenciosa, descargá primero una copia de los cambios que ves en esta pantalla. Luego cargá la información más reciente y repetí tu operación.</div>`,
+          `<button class="btn" data-action="cloud-export">Descargar copia actual</button><button class="btn primary" data-action="cloud-reload">Cargar datos recientes</button>`);
+      } else {
+        syncLabel('Sin conexión · reintentar','error');
+        toast('No se pudieron guardar los últimos cambios. No cierres esta pestaña.');
+      }
+      console.error('Error de sincronización de DEPIDERM:',err);
+    } finally {
+      saving=false;
+      if(dirty && !conflict && !lastSaveError) {
+        setTimeout(flushCloudSave,40);
+      }
+    }
+  }
+  function applyCloudPayload(value) {
+    const data=value&&typeof value==='object'?value:EMPTY_STATE();
+    patients=normalizeClients(data.patients);
+    payments=Array.isArray(data.payments)?data.payments.filter(x=>x && typeof x==='object'):[];
+    charges=Array.isArray(data.charges)?normalizeCharges(data.charges):[];
+    settings={posPct:validPercent(data.settings?.posPct),bankPct:validPercent(data.settings?.bankPct)};
+    closeModal();
+    render();
+    checkBrowserReminders();
+  }
+  async function pullCloudState(force=false) {
+    if(!onlineReady||!onlineClient||(!force&&(dirty||saving||conflict)))return;
+    if(!force && document.querySelector('#modalMount .modal')) return;
+    try {
+      const {data,error}=await onlineClient.from('depiderm_workspace')
+        .select('revision,payload').eq('id',1).single();
+      if(error)throw error;
+      if(force || Number(data.revision)!==currentRevision) {
+        currentRevision=Number(data.revision);
+        applyCloudPayload(data.payload);
+        syncLabel('Actualizado en línea');
+      }
+    }catch(e){syncLabel('Error al actualizar','error');console.warn(e);}
+  }
+  async function reloadAfterConflict(){
+    if(!onlineReady)return;
+    if(saveTimer)clearTimeout(saveTimer);
+    saveTimer=null; dirty=false;conflict=false;
+    await pullCloudState(true);
+    syncLabel('Datos actuales cargados');
+    toast('Datos recientes cargados. Revisá y repetí el cambio que no se guardó.');
+  }
+  function authMessage(msg) { document.getElementById('authError').textContent=msg||''; }
+  async function showLoggedIn(user){
+    const {data:existing,error:readError}=await onlineClient.from('depiderm_workspace')
+      .select('revision,payload').eq('id',1).maybeSingle();
+    if(readError)throw readError;
+    let workspace=existing;
+    if(!workspace){
+      const {data:initial,error:initError}=await onlineClient.from('depiderm_workspace')
+        .insert({id:1,owner_id:user.id,payload:EMPTY_STATE()}).select('revision,payload').single();
+      if(initError)throw new Error('No se pudo inicializar el espacio compartido. Revisá los permisos de Supabase. '+initError.message);
+      workspace=initial;
+    }
+    onlineReady=true;
+    currentRevision=Number(workspace.revision);
+    document.getElementById('authScreen').hidden=true;
+    document.getElementById('appRoot').hidden=false;
+    applyCloudPayload(workspace.payload);
+    syncLabel('Sincronizado');
+    if(!realtimeChannel){
+      realtimeChannel=onlineClient.channel('depiderm-shared-agenda')
+        .on('postgres_changes',{event:'UPDATE',schema:'public',table:'depiderm_workspace',filter:'id=eq.1'},()=>pullCloudState())
+        .subscribe();
+    }
+  }
+  async function logoutOnline() {
+    if(dirty || saving){alert('Tenés cambios sin guardar. Verificá la conexión antes de cerrar sesión.');return;}
+    onlineReady=false;
+    if(realtimeChannel){await onlineClient.removeChannel(realtimeChannel);realtimeChannel=null;}
+    await onlineClient.auth.signOut();
+    patients=[];payments=[];charges=[];settings={posPct:0,bankPct:0};
+    document.getElementById('appRoot').hidden=true;
+    document.getElementById('content').replaceChildren();
+    document.getElementById('modalMount').replaceChildren();
+    document.getElementById('authScreen').hidden=false;
+    document.getElementById('loginPass').value='';
+    syncLabel('Sesión cerrada');
+  }
+  async function bootOnline() {
+    const configured=typeof ONLINE_CONFIG.supabaseUrl==='string'
+      && /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(ONLINE_CONFIG.supabaseUrl)
+      && /^sb_publishable_|^eyJ/.test(ONLINE_CONFIG.publishableKey||'')
+      && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ONLINE_CONFIG.adminEmail||'')
+      && !ONLINE_CONFIG.supabaseUrl.includes('TU-PROYECTO')
+      && !ONLINE_CONFIG.publishableKey.includes('REEMPLAZAR')
+      && !ONLINE_CONFIG.adminEmail.includes('correo-que-controlas');
+    if(!configured){
+      authMessage('Falta configurar config.js con la URL, la clave pública y el correo administrativo de Supabase.');
+      document.getElementById('loginButton').disabled=true;
+      document.getElementById('configNotice').textContent='Primero completá el archivo config.js siguiendo la guía INICIO_AQUI.md.';
+      return;
+    }
+    if(!window.supabase?.createClient){authMessage('No se pudo cargar la biblioteca de acceso. Revisá tu conexión a Internet.');return;}
+    onlineClient=window.supabase.createClient(ONLINE_CONFIG.supabaseUrl,ONLINE_CONFIG.publishableKey,{
+      auth:{persistSession:true,storage:window.sessionStorage,autoRefreshToken:true,detectSessionInUrl:false}
+    });
+    document.getElementById('loginForm').addEventListener('submit',async event=>{
+      event.preventDefault();
+      const username=String(document.getElementById('loginUser').value||'').trim();
+      const password=document.getElementById('loginPass').value;
+      if(username.toLowerCase()!=='admin'){authMessage('El usuario debe ser Admin.');return;}
+      const button=document.getElementById('loginButton');button.disabled=true;authMessage('Verificando acceso…');
+      try {
+        const {data,error}=await onlineClient.auth.signInWithPassword({email:ONLINE_CONFIG.adminEmail,password});
+        if(error)throw error;
+        await showLoggedIn(data.user);
+        document.getElementById('loginPass').value='';authMessage('');
+      }catch(error){
+        authMessage('No se pudo ingresar. Revisá el usuario, la contraseña y la configuración de Supabase.');
+        console.warn('Login:',error.message);
+      }finally{button.disabled=false;}
+    });
+    const {data}=await onlineClient.auth.getSession();
+    if(data?.session?.user){
+      try{await showLoggedIn(data.session.user);}catch(e){authMessage('No se pudo abrir la base compartida. Revisá la configuración SQL.');console.warn(e);}
+    }
+    window.addEventListener('online',()=>{if(onlineReady){if(dirty)flushCloudSave();else pullCloudState();}});
+    window.addEventListener('beforeunload',event=>{if(dirty||saving){event.preventDefault();event.returnValue='';}});
+  }
+
+  const KEY = 'depiderm_admin_prototype_v1';
+  const NOTIFICATION_KEY = 'depiderm_admin_notification_log_v1';
+  const PAYMENT_KEY = 'depiderm_admin_payments_v2';
+  const CHARGES_KEY = 'depiderm_admin_charges_v3';
+  const SETTINGS_KEY = 'depiderm_admin_settings_v3';
+  const icons = {
+    layout: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+    calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>',
+    users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+    bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    chevronLeft: '<path d="m15 18-6-6 6-6"/>',
+    chevronRight: '<path d="m9 18 6-6-6-6"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+    check: '<path d="m4 12 5 5L20 6"/>',
+    alert: '<path d="M10.3 3.4 2.1 17.5a2 2 0 0 0 1.7 3h16.4a2 2 0 0 0 1.7-3L13.7 3.4a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/>',
+    search: '<circle cx="10.7" cy="10.7" r="7"/><path d="m16 16 5 5"/>',
+    close: '<path d="M5 5l14 14M19 5 5 19"/>',
+    clipboard: '<rect x="5" y="4" width="14" height="18" rx="2"/><path d="M9 4V2h6v2M9 11h6M9 16h6"/>',
+    refresh: '<path d="M20 11a8 8 0 1 0-1 5M20 4v7h-7"/>',
+    wallet: '<rect x="2" y="5" width="20" height="16" rx="3"/><path d="M16 13h6M5 5V3h14"/>',
+    download: '<path d="M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4"/>',
+    upload: '<path d="M12 21V9m-5 5 5-5 5 5M4 7V3h16v4"/>',
+    coin: '<circle cx="12" cy="12" r="9"/><path d="M15 9c-1-2-6-2-6 0s6 2 6 5-5 3-6 1M12 5v14"/>',
+    shield: '<path d="M12 2 4 5v6c0 6 4 10 8 11 4-1 8-5 8-11V5z"/><path d="m9 12 2 2 4-4"/>',
+    spark: '<path d="m12 2 2.3 7.7L22 12l-7.7 2.3L12 22l-2.3-7.7L2 12l7.7-2.3z"/>'
+  };
+  const icon = (type, size=18) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[type] || icons.calendar}</svg>`;
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const id = () => String(Date.now()) + '_' + Math.random().toString(36).slice(2,9);
+  const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+  const addDays = (iso, offset) => { const [y,m,d] = iso.split('-').map(Number); const t = new Date(y,m-1,d+offset); return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`; };
+  const daysUntil = iso => { if (!iso) return Infinity; const date = s => { const [y,m,d] = s.split('-').map(Number); return Date.UTC(y,m-1,d); }; return Math.round((date(iso) - date(todayISO())) / 86400000); };
+  const prettyDate = (iso, opt={day:'numeric',month:'short',year:'numeric'}) => { if (!iso) return 'Sin programar'; const [y,m,d] = iso.split('-').map(Number); return new Intl.DateTimeFormat('es-SV',opt).format(new Date(y,m-1,d)); };
+  const shortDate = iso => prettyDate(iso,{day:'numeric',month:'short'});
+  const plural = (v,unit) => `${v} ${unit}${v===1?'':'s'}`;
+  const freshSessions = () => Array.from({length:6},(_,i)=>({n:i+1,date:'',time:'',status:'pending',areas:'',plannedMinutes:null,actualMinutes:null}));
+  const asMinutes = (x,max=480) => { const n=Number(x);return Number.isInteger(n)&&n>=5&&n<=max?n:null; };
+  const timeToMinutes = str => { const m=/^(\d{1,2}):(\d{2})$/.exec(String(str));return m?Number(m[1])*60+Number(m[2]):NaN; };
+  const formatInterval = (time,minutes) => { const start=timeToMinutes(time),end=start+(asMinutes(minutes)||45);return Number.isFinite(start)&&end<=1440?`${time} – ${String(Math.floor(end/60)).padStart(2,'0')}:${String(end%60).padStart(2,'0')}`:time; };
+  const areaSuggestions = ['Axilas','Piernas','Rostro','Brazos','Espalda','Pecho','Abdomen','Bikini'];
+  const areaChips = (selected='') => `<div class="area-chips" aria-label="Áreas sugeridas">${areaSuggestions.map(a=>{const active=String(selected).split(/[,;]+/).map(t=>t.trim().toLocaleLowerCase('es')).includes(a.toLocaleLowerCase('es'));return `<button type="button" class="area-chip ${active?'active':''}" aria-pressed="${active}" data-action="toggle-area" data-area="${esc(a)}">${esc(a)}</button>`;}).join('')}</div>`;
+
+  function normalizeClients(data) {
+    if (!Array.isArray(data)) return [];
+    return data.filter(x => x && typeof x === 'object').map(x => ({
+      id: String(x.id||id()), name: String(x.name||'Sin nombre'), age: Number(x.age)||0,
+      phone: String(x.phone||''), notes: String(x.notes||''), createdAt: String(x.createdAt||todayISO()),
+      sessions: freshSessions().map((s,i) => {
+        const original = Array.isArray(x.sessions) ? x.sessions[i] : null;
+        if (!original || !['pending','scheduled','completed'].includes(original.status)) return s;
+        return {n:i+1,date:String(original.date||''),time:String(original.time||''),status:original.status,areas:String(original.areas||'').slice(0,220),plannedMinutes:asMinutes(original.plannedMinutes),actualMinutes:asMinutes(original.actualMinutes)};
+      })
+    }));
+  }
+  let patients = [];
+  let payments = [];
+  let charges = [];
+  function validPercent(n) { return Number.isFinite(Number(n)) ? Math.min(100,Math.max(0,Number(n))) : 0; }
+  let settings={posPct:0,bankPct:0};
+  let view = 'dashboard';
+  let search = '';
+  let filter = 'all';
+  let monthDate = new Date(); monthDate.setDate(1);
+  let selectedDay = todayISO();
+  const $ = sel => document.querySelector(sel);
+  // All patient, appointment and financial records are stored only in Supabase.
+  // The browser never writes those records to localStorage.
+  const save = () => scheduleCloudSave();
+  const savePayments = () => scheduleCloudSave();
+  const saveCharges = () => scheduleCloudSave();
+  const saveSettings = () => scheduleCloudSave();
+  const dollars = n => new Intl.NumberFormat('es-SV',{style:'currency',currency:'USD'}).format(n||0);
+  const cents = n => Math.round(Number(n||0)*100);
+  const usd = n => Math.round(Number(n||0)*100)/100;
+  function normalizeCharges(data) {
+    return data.filter(x=>x&&typeof x==='object'&&x.id&&x.patientId&&Number(x.total)>0).map(x=>({
+      id:String(x.id),patientId:String(x.patientId),patientName:String(x.patientName||''),
+      session:Math.max(0,Math.min(6,Number(x.session)||0)),total:usd(x.total),
+      createdAt:String(x.createdAt||todayISO()),concept:String(x.concept||'Tratamiento')
+    }));
+  }
+  const paidTotal = arr => arr.reduce((sum,x)=>sum+Number(x.amount||0),0);
+  const netTotal = arr => arr.reduce((sum,x)=>sum+Number(x.net??x.amount??0),0);
+  const feeTotal = arr => arr.reduce((sum,x)=>sum+Number(x.feePos||0)+Number(x.feeBank||0),0);
+  const chargePaidCents = ch => payments.filter(x=>x.chargeId===ch.id).reduce((n,x)=>n+cents(x.amount),0);
+  const chargeBalanceCents = ch => Math.max(0,cents(ch.total)-chargePaidCents(ch));
+  const openCharges = () => charges.filter(ch=>chargeBalanceCents(ch)>0 && patients.some(p=>p.id===ch.patientId));
+  const patientCharges = pid => charges.filter(ch=>ch.patientId===pid);
+  const patientDebtCents = pid => patientCharges(pid).reduce((n,ch)=>n+chargeBalanceCents(ch),0);
+  const openBalance = () => openCharges().reduce((n,ch)=>n+chargeBalanceCents(ch),0)/100;
+  const feeFor = (amount,posPct,bankPct) => {
+    const pos=cents(amount)*validPercent(posPct)/100, bank=cents(amount)*validPercent(bankPct)/100;
+    const feePos=Math.round(pos),feeBank=Math.round(bank);
+    return {feePos:feePos/100,feeBank:feeBank/100,net:(cents(amount)-feePos-feeBank)/100};
+  };
+  const currentMonth = () => todayISO().slice(0,7);
+  const monthPayments = () => payments.filter(x=>x.date.slice(0,7)===currentMonth());
+  const todayPayments = () => payments.filter(x=>x.date===todayISO());
+  const toast = message => { const box=$('#toastMount');box.innerHTML=`<div class="toast" role="status">${esc(message)}</div>`;setTimeout(()=>box.innerHTML='',4000); };
+  const doneCount = p => p.sessions.filter(s => s.status==='completed').length;
+  const upcoming = p => p.sessions.filter(s => s.status==='scheduled' && s.date && daysUntil(s.date)>=0).sort((a,b)=>`${a.date}T${a.time}`.localeCompare(`${b.date}T${b.time}`));
+  const overdue = p => p.sessions.filter(s => s.status==='scheduled' && s.date && daysUntil(s.date)<0);
+  const needsScheduling = p => doneCount(p)>0 && doneCount(p)<6 && !p.sessions.some(s=>s.status==='scheduled');
+  const nextAppointment = p => upcoming(p)[0] || null;
+  const allAppointments = () => patients.flatMap(p=>p.sessions.filter(s=>s.status==='scheduled'&&s.date).map(s=>({patient:p,session:s,days:daysUntil(s.date)})));
+  const reminderAppointments = () => allAppointments().filter(a=>a.days===1||a.days===2).sort((a,b)=>a.days-b.days);
+  const overdueAppointments = () => allAppointments().filter(a=>a.days<0).sort((a,b)=>a.days-b.days);
+  const pendingPatients = () => patients.filter(needsScheduling);
+  const todaysAppointments = () => allAppointments().filter(a=>a.days===0);
+  const allUpcoming = () => allAppointments().filter(a=>a.days>=0).sort((a,b)=> `${a.session.date}T${a.session.time}`.localeCompare(`${b.session.date}T${b.session.time}`));
+  function patientStatus(p) {
+    if (doneCount(p)===6) return {text:'Tratamiento completo',cls:'green'};
+    if (needsScheduling(p)) return {text:'Pendiente de programar',cls:'red'};
+    if (overdue(p).length) return {text:'Cita vencida',cls:'amber'};
+    if (nextAppointment(p)) return {text:'Con cita programada',cls:'green'};
+    return {text:'Sin citas aún',cls:'neutral'};
+  }
+  const initials = n => n.trim().split(/\s+/).slice(0,2).map(s=>s[0]?.toUpperCase()||'').join('');
+  const pill = (text,cls='neutral') => `<span class="pill ${cls}">${esc(text)}</span>`;
+  const notice = `<div class="notice"><strong>DEPIDERM en línea:</strong> agenda y caja compartidas. Las alertas se muestran dentro del sistema; las notificaciones con la página cerrada requieren configurar un servicio de avisos adicional.</div>`;
+  function render() {
+    if (!onlineReady) return;
+    $('#dateTop').textContent = new Intl.DateTimeFormat('es-SV',{weekday:'long',day:'numeric',month:'long'}).format(new Date());
+    const titles = {dashboard:'Resumen general',agenda:'Agenda de citas',patients:'Pacientes',alerts:'Alertas y pendientes',payments:'Control de caja'};
+    $('#topbarTitle').textContent = titles[view];
+    document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
+    const count = pendingPatients().length + reminderAppointments().length + overdueAppointments().length + openCharges().length;
+    $('#navCount').textContent = count;
+    $('#navCount').style.display = count ? 'inline-flex' : 'none';
+    $('#content').innerHTML = ({dashboard:renderDashboard,agenda:renderAgenda,patients:renderPatients,alerts:renderAlerts,payments:renderPayments})[view]();
+    installIcons();
+  }
+  function installIcons() {
+    document.querySelectorAll('[data-icon]').forEach(el=> { const name = el.dataset.icon; el.innerHTML=icon(name); });
+  }
+  function renderDashboard() {
+    const coming = allUpcoming().slice(0,5);
+    const alerts = makeAlerts().slice(0,6);
+    const critical = pendingPatients().length + overdueAppointments().length + openCharges().length;
+    const in7=allUpcoming().filter(a=>a.days<=7).length;
+    const period=new Intl.DateTimeFormat('es-SV',{month:'long',year:'numeric'}).format(new Date());
+    return `${notice}
+      <div class="hero">
+        <div><div class="eyebrow">DEPIDERM · ORGANIZACIÓN INTELIGENTE</div><h1>Todo en orden. Todo a tiempo.</h1>
+        <p>Una experiencia de atención cuidada, desde la primera cita hasta la última sesión.</p>
+        <div class="stat-inline">${plural(patients.length,'paciente')} · ${in7} citas en los próximos 7 días · ${plural(payments.length,'pago')} registrado${payments.length===1?'':'s'}</div></div>
+        <div class="hero-actions"><button class="btn" data-action="new-patient">${icon('plus')} Ingresar paciente</button><button class="btn ghost" data-view="agenda">${icon('calendar')} Abrir agenda</button></div>
+      </div>
+      ${critical?`<div class="alert-banner"><span>${icon('alert',16)} <strong>${critical} asuntos requieren seguimiento:</strong> ${pendingPatients().length} sin próxima cita, ${overdueAppointments().length} citas vencidas y ${openCharges().length} cobros pendientes (${dollars(openBalance())}).</span><button data-view="alerts">Revisar pendientes ${icon('arrow',12)}</button></div>`:''}
+      <div class="metrics">
+        ${metric('Citas para hoy',todaysAppointments().length,'calendar','Sesiones programadas')}
+        ${metric('Próximos recordatorios',reminderAppointments().length,'bell','Avisos a 2 y 1 día')}
+        ${metric('Pendientes de programar',pendingPatients().length,'alert','Seguimiento permanente',true)}
+        ${metric('Ingresos netos del mes',dollars(netTotal(monthPayments())),'wallet',period)}
+      </div>
+      <div class="dashboard-grid">
+        <section class="panel"><div class="panel-head"><div><h2>Próximas citas</h2><p>Agenda priorizada por fecha y hora</p></div><button class="text-link" data-view="agenda">Ver agenda ${icon('arrow',13)}</button></div>
+        ${coming.length ? coming.map(appointmentRow).join('') : empty('calendar','Todavía no hay citas próximas. Guardá un paciente y agendá su primera sesión.')}</section>
+        <section class="panel"><div class="panel-head"><div><h2>Atención requerida</h2><p>Recordatorios y pacientes para seguimiento</p></div><button class="text-link" data-view="alerts">Ver todas ${icon('arrow',13)}</button></div>
+        ${alerts.length ? alerts.map(alertRow).join('') : empty('check','Todo al día. No hay alertas pendientes.')}</section>
+      </div>
+      <div class="section-row"><h2>Tu centro de operaciones</h2><span class="chip">${icon('spark',14)} En línea · v1.0</span></div>
+      <div class="bottom-mini">
+        <div class="action-card"><div><h3>Caja del negocio</h3><p>Ingresos, pagos y control del movimiento diario</p></div><button class="btn sm" data-view="payments">Abrir caja ${icon('arrow',13)}</button></div>
+        <div class="action-card"><div><h3>Respaldo de datos</h3><p>Exportá una copia de seguridad de los datos</p></div><button class="btn sm" data-action="backup">${icon('download',14)} Respaldar</button></div>
+      </div>`;
+  }
+  function metric(label,value,ic,sub,urgent=false) {
+    return `<article class="metric ${urgent?'urgent':''}"><div class="metric-top"><span>${esc(label)}</span><span class="metric-icon">${icon(ic)}</span></div><div class="number">${value}</div><div class="mini">${esc(sub)}</div></article>`;
+  }
+  function empty(ic,text) { return `<div class="empty">${icon(ic,27)}<div>${esc(text)}</div></div>`; }
+  function appointmentRow(a) {
+    const {patient:p,session:s,days} = a;
+    return `<div class="entry"><span class="avatar">${esc(initials(p.name))}</span><div class="entry-main"><strong>${esc(p.name)}</strong><small>Sesión ${s.n} de 6 · ${esc(p.phone)}</small><small class="session-extra">${esc(s.areas||'Áreas sin registrar')}${s.plannedMinutes?` · ${s.plannedMinutes} min previstos`:''}</small></div><div class="entry-right"><strong>${days===0?'Hoy':days===1?'Mañana':shortDate(s.date)}</strong><small>${esc(s.plannedMinutes?formatInterval(s.time,s.plannedMinutes):s.time||'Sin hora')}</small><button class="text-link" data-action="open-patient" data-id="${esc(p.id)}" style="font-size:10px;padding:6px 0 0">Ver paciente</button></div></div>`;
+  }
+  function makeAlerts() {
+    return [
+      ...pendingPatients().map(p=>({type:'pending',p,title:'PENDIENTE DE PROGRAMAR',sub:`${p.name} completó ${plural(doneCount(p),'sesión')} y no tiene próxima cita.`})),
+      ...openCharges().map(ch=>({type:'debt',p:getPatient(ch.patientId),charge:ch,title:'PENDIENTE DE PAGO',sub:`${getPatient(ch.patientId)?.name||ch.patientName} · ${dollars(chargeBalanceCents(ch)/100)} por cobrar · ${ch.concept}`})),
+      ...overdueAppointments().map(a=>({type:'overdue',p:a.patient,s:a.session,title:'Cita vencida',sub:`${a.patient.name} · Sesión ${a.session.n} · ${prettyDate(a.session.date)}`})),
+      ...reminderAppointments().map(a=>({type:'reminder',p:a.patient,s:a.session,title:a.days===1?'Cita mañana':'Cita en 2 días',sub:`${a.patient.name} · Sesión ${a.session.n} · ${shortDate(a.session.date)} a las ${a.session.time}`}))
+    ];
+  }
+  function alertRow(a) {
+    const red=a.type==='pending'||a.type==='debt';
+    const clr=red?'':a.type==='overdue'?'amber':'green';
+    const action=a.type==='pending'?'schedule-next':a.type==='debt'?'pay-charge':'open-patient';
+    const label=a.type==='pending'?'Agendar siguiente sesión':a.type==='debt'?'Registrar abono':'Ver expediente';
+    return `<div class="alert-entry"><span class="alert-dot ${clr}">${icon(red?'alert':a.type==='overdue'?'clock':'bell')}</span><div class="alert-body"><strong style="${red?'color:var(--red)':''}">${esc(a.title)}</strong><p>${esc(a.sub)}</p><button class="action" data-action="${action}" data-id="${esc(a.type==='debt'?a.charge.id:a.p.id)}">${label} ${icon('arrow',11)}</button></div></div>`;
+  }
+  function renderAlerts() {
+    const all = makeAlerts();
+    const pending = all.filter(a=>a.type==='pending'), debts=all.filter(a=>a.type==='debt'),expired=all.filter(a=>a.type==='overdue'),reminders=all.filter(a=>a.type==='reminder');
+    return `${notice}<div class="page-head"><div><h1>Alertas y seguimiento.</h1><p class="subtitle">La programación y los saldos sin cancelar siguen visibles en rojo hasta quedar resueltos.</p></div><button class="btn" data-action="enable-notifications">${icon('bell')} Activar avisos del navegador</button></div>
+      <div class="metrics" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+        ${metric('Sin próxima sesión',pending.length,'alert','Pendientes permanentes',true)}
+        ${metric('Citas vencidas',expired.length,'clock','Requieren revisión')}
+        ${metric('En 2 y 1 día',reminders.length,'bell','Recordatorios próximos')}
+        ${metric('Pendiente de pago',dollars(openBalance()),'wallet',`${debts.length} cuentas por cobrar`,true)}
+      </div>
+      <div class="alert-list-stack">
+        ${alertGroup('Pendientes de programar','Pacientes que ya iniciaron tratamiento sin nueva fecha',pending,'No hay pacientes pendientes de programar.')}
+        ${alertGroup('Pendientes de pago','Saldos que permanecen en rojo hasta pagarse por completo',debts,'No hay saldos pendientes de pago.')}
+        ${alertGroup('Citas vencidas','Citas pasadas que aún no figuran como realizadas',expired,'No hay citas vencidas.')}
+        ${alertGroup('Avisos: 2 y 1 día antes','Recordatorios de sesiones próximas',reminders,'No hay avisos para los próximos dos días.')}
+      </div><p class="small-note" style="margin-top:15px">Los avisos siempre aparecen dentro del panel. Las notificaciones del navegador se comprueban cuando el sistema está abierto y el navegador las permite. Para alertas automáticas con el sitio cerrado será necesario un servicio en línea.</p>`;
+  }
+  function alertGroup(title,desc,rows,emptyText) {
+    return `<section class="panel alert-group"><div class="panel-head"><div><h2>${esc(title)} ${pill(rows.length,rows.length&&title.startsWith('Pendientes')?'red':'neutral')}</h2><p>${esc(desc)}</p></div></div>${rows.length?rows.map(alertRow).join(''):empty('check',emptyText)}</section>`;
+  }
+  function renderPatients() {
+    const query=search.trim().toLocaleLowerCase('es');
+    const filtered=patients.filter(p=>(p.name.toLocaleLowerCase('es').includes(query)||p.phone.toLocaleLowerCase('es').includes(query))&&(filter==='all'||(filter==='pending'&&needsScheduling(p))||(filter==='scheduled'&&upcoming(p).length>0)||(filter==='complete'&&doneCount(p)===6)));
+    return `${notice}<div class="page-head"><div><h1>Pacientes.</h1><p class="subtitle">Expedientes, contacto y seguimiento de hasta seis sesiones.</p></div></div>
+      <div class="toolbar"><label class="search">${icon('search')}<input id="patientSearch" type="search" value="${esc(search)}" placeholder="Buscar por nombre o teléfono" aria-label="Buscar pacientes"></label>
+      <select id="patientFilter" class="filter" aria-label="Filtrar pacientes"><option value="all" ${filter==='all'?'selected':''}>Todos los pacientes</option><option value="pending" ${filter==='pending'?'selected':''}>Pendientes de programar</option><option value="scheduled" ${filter==='scheduled'?'selected':''}>Con citas programadas</option><option value="complete" ${filter==='complete'?'selected':''}>Tratamiento completo</option></select></div>
+      <section class="panel"><div class="table-wrap"><table><thead><tr><th>Paciente</th><th>Contacto</th><th>Progreso</th><th>Próxima cita</th><th>Estado</th><th></th></tr></thead><tbody>
+      ${filtered.length?filtered.map(p=>{const next=nextAppointment(p),s=patientStatus(p);return `<tr><td><div class="table-name"><span class="avatar">${esc(initials(p.name))}</span><strong>${esc(p.name)}</strong></div></td><td>${esc(p.phone)}</td><td><strong>${doneCount(p)} de 6</strong><div class="progress-track" aria-label="${doneCount(p)} sesiones realizadas"><div class="progress-fill" style="width:${Math.round(doneCount(p)/6*100)}%"></div></div></td><td>${next?`${shortDate(next.date)} · ${esc(next.time)}`:'—'}</td><td>${pill(s.text,s.cls)} ${patientDebtCents(p.id)>0?pill(`Debe ${dollars(patientDebtCents(p.id)/100)}`,'red'):''}</td><td><button class="view-btn" data-action="open-patient" data-id="${esc(p.id)}">Abrir expediente ${icon('arrow',12)}</button></td></tr>`}).join(''):`<tr><td colspan="6">${empty('users','No se encontraron pacientes. Podés registrar una desde «Ingresar paciente».')}</td></tr>`}
+      </tbody></table></div></section>`;
+  }
+  function renderAgenda() {
+    const y=monthDate.getFullYear(),m=monthDate.getMonth(),first=new Date(y,m,1),days=new Date(y,m+1,0).getDate();
+    const offset=(first.getDay()+6)%7;
+    const slots=Array.from({length:offset},()=>'<div class="day blank"></div>');
+    for(let day=1;day<=days;day++) {
+      const date=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const n=allAppointments().filter(a=>a.session.date===date).length;
+      slots.push(`<button type="button" class="day ${date===todayISO()?'today':''} ${date===selectedDay?'selected':''}" data-action="select-day" data-date="${date}" aria-label="${esc(prettyDate(date))}, ${n} citas"><span>${day}</span>${n?`<span class="count">${plural(n,'cita')}</span>`:''}</button>`);
+    }
+    const dayAppts=allAppointments().filter(a=>a.session.date===selectedDay).sort((a,b)=>a.session.time.localeCompare(b.session.time));
+    return `${notice}<div class="page-head"><div><h1>Agenda de citas.</h1><p class="subtitle">Vista mensual por paciente, áreas a depilar y duración prevista.</p></div><button class="btn primary" data-action="new-patient">${icon('plus')} Registrar paciente</button></div>
+      <div class="calendar-layout"><section class="panel"><div class="panel-head"><h2>Calendario</h2><div class="calendar-toolbar"><button class="btn sm" data-action="calendar-today">Hoy</button><button class="icon-btn" data-action="month-prev" aria-label="Mes anterior">${icon('chevronLeft')}</button><strong>${esc(new Intl.DateTimeFormat('es-SV',{month:'long',year:'numeric'}).format(first))}</strong><button class="icon-btn" data-action="month-next" aria-label="Mes siguiente">${icon('chevronRight')}</button></div></div>
+      <div class="calendar-grid">${['LUN','MAR','MIÉ','JUE','VIE','SÁB','DOM'].map(x=>`<div class="weekday">${x}</div>`).join('')}${slots.join('')}</div></section>
+      <section class="panel"><div class="panel-head"><div><h2>${esc(prettyDate(selectedDay,{weekday:'long',day:'numeric',month:'long'}))}</h2><p>${plural(dayAppts.length,'cita')} programada${dayAppts.length===1?'':'s'}</p></div></div>
+      ${dayAppts.length?dayAppts.map(appointmentRow).join(''):empty('calendar','No hay citas registradas para este día.')}</section></div>`;
+  }
+  const getPatient = pid => patients.find(p=>p.id===pid);
+  function showModal(title,subtitle,body,footer,wide=false) {
+    $('#modalMount').innerHTML = `<div class="modal-bg" id="modalBackdrop"><section class="modal ${wide?'wide':''}" role="dialog" aria-modal="true" aria-label="${esc(title)}"><header class="modal-head"><div><h2>${esc(title)}</h2><p>${esc(subtitle)}</p></div><button type="button" class="icon-btn" data-action="close-modal" aria-label="Cerrar">${icon('close')}</button></header><div class="modal-body">${body}</div>${footer?`<footer class="modal-foot">${footer}</footer>`:''}</section></div>`;
+    $('#modalBackdrop').addEventListener('click',ev=>{if(ev.target.id==='modalBackdrop')closeModal();});
+    const focusable = $('#modalMount').querySelector('input, button');
+    if(focusable) focusable.focus();
+  }
+  function closeModal() { $('#modalMount').innerHTML=''; }
+  function patientForm(pid) {
+    const p=pid?getPatient(pid):null;
+    showModal(p?'Editar paciente':'Ingresar paciente',p?'Actualizá los datos de contacto y observaciones.':'Guardá el expediente y podrás agendar hasta seis sesiones.',
+      `<form id="patientForm" class="form-grid"><div class="field full"><label for="name">Nombre completo *</label><input id="name" name="name" maxlength="120" required autocomplete="off" value="${esc(p?.name||'')}" placeholder="Nombre y apellido"></div>
+      <div class="field"><label for="age">Edad *</label><input id="age" name="age" type="number" min="0" max="120" required value="${p?esc(p.age):''}" placeholder="Años"></div>
+      <div class="field"><label for="phone">Número de contacto *</label><input id="phone" name="phone" type="tel" maxlength="30" required autocomplete="off" value="${esc(p?.phone||'')}" placeholder="0000-0000"></div>
+      <div class="field full"><label for="notes">Observaciones</label><textarea name="notes" id="notes" maxlength="2000" placeholder="Notas generales sobre la atención...">${esc(p?.notes||'')}</textarea></div>
+      <div class="field full"><span class="small-note">* Campos obligatorios. En esta versión usá únicamente datos de prueba.</span></div></form>`,
+      `<button class="btn" data-action="close-modal">Cancelar</button><button class="btn primary" type="submit" form="patientForm">${p?'Guardar cambios':'Guardar y agendar'} ${icon('arrow',14)}</button>`);
+    $('#patientForm').addEventListener('submit', e=>{
+      e.preventDefault();
+      const form=new FormData(e.currentTarget);
+      const name=String(form.get('name')||'').trim(),phone=String(form.get('phone')||'').trim(),age=Number(form.get('age'));
+      if(!name||!phone||!Number.isFinite(age)||age<0||age>120) return;
+      if(p){ p.name=name; p.age=age; p.phone=phone; p.notes=String(form.get('notes')||'').trim(); }
+      else { const item={id:id(),name,age,phone,notes:String(form.get('notes')||'').trim(),createdAt:todayISO(),sessions:freshSessions()};patients.push(item);pid=item.id; }
+      save();render();patientDetail(pid);
+    });
+  }
+  function patientDetail(pid) {
+    const p=getPatient(pid); if(!p)return;
+    const status=patientStatus(p);
+    const content=`<div class="info-grid"><div class="info"><label>Edad</label><div>${p.age} años</div></div><div class="info"><label>Teléfono</label><div>${esc(p.phone)}</div></div><div class="info"><label>Sesiones realizadas</label><div>${doneCount(p)} de 6</div></div><div class="info"><label>Estado</label><div>${pill(status.text,status.cls)}</div></div></div>
+    <div style="padding:0 23px 12px"><div class="small-note" style="font-weight:800;color:#777">OBSERVACIONES</div><p class="detail-notes">${esc(p.notes||'Sin observaciones registradas.')}</p></div>
+    <div class="patient-balance"><div><strong>${patientDebtCents(pid)>0?'PENDIENTE DE PAGO':'Estado de pagos'}</strong><div class="small-note">${patientDebtCents(pid)>0?`Saldo por cobrar: ${dollars(patientDebtCents(pid)/100)}`:'Sin saldos abiertos registrados en este expediente'}</div></div>${patientDebtCents(pid)>0?`<button class="btn sm danger" data-action="pay-charge" data-id="${esc(openCharges().find(ch=>ch.patientId===pid)?.id||'')}">Registrar abono ${icon('arrow',12)}</button>`:''}</div>
+    <div style="padding:0 23px 10px;display:flex;justify-content:space-between;align-items:center;gap:10px"><h3>Plan de 6 sesiones</h3>${doneCount(p)===6?pill('Completado','green'):pill(`${doneCount(p)}/6 realizadas`,'neutral')}</div>
+    <div class="sessions">${p.sessions.map(s=>{
+       const text=s.status==='completed'?`Realizada ${s.date?`el ${prettyDate(s.date)}`:''}`:s.status==='scheduled'?`${prettyDate(s.date)} · ${s.plannedMinutes?formatInterval(s.time,s.plannedMinutes):s.time}`:'Sin programar';
+       const isOverdue=s.status==='scheduled'&&daysUntil(s.date)<0;
+       const description=[s.areas?`<b>Áreas:</b> ${esc(s.areas)}`:null,s.plannedMinutes?`<b>Previsto:</b> ${s.plannedMinutes} min`:null,s.status==='completed'&&s.actualMinutes?`<b>Tiempo real:</b> ${s.actualMinutes} min`:null].filter(Boolean).join(' · ');
+       return `<div class="session ${s.status==='completed'?'done':''}"><span class="session-number">${s.status==='completed'?icon('check',17):s.n}</span><div class="session-main"><strong>Sesión ${s.n} ${isOverdue?pill('Vencida','amber'):s.status==='completed'?pill('Realizada','green'):''}</strong><small>${esc(text)}</small>${description?`<small class="session-extra">${description}</small>`:''}</div><div class="session-actions">${s.status==='completed'?`<button class="btn sm" data-action="edit-completed" data-id="${esc(pid)}" data-num="${s.n}">Editar detalles</button><button class="btn sm" data-action="reopen-session" data-id="${esc(pid)}" data-num="${s.n}">Corregir estado</button>`:s.status==='scheduled'?`<button class="btn sm" data-action="schedule" data-id="${esc(pid)}" data-num="${s.n}">Editar cita</button><button class="btn sm primary" data-action="complete" data-id="${esc(pid)}" data-num="${s.n}">Marcar realizada</button><button class="btn sm danger" data-action="unschedule" data-id="${esc(pid)}" data-num="${s.n}">Quitar cita</button>`:`<button class="btn sm primary" data-action="schedule" data-id="${esc(pid)}" data-num="${s.n}">${icon('plus',13)} Agendar</button>`}</div></div>`;
+    }).join('')}</div>`;
+    showModal(p.name,'Expediente de paciente · seguimiento de sesiones',content,
+      `<button class="btn danger" data-action="delete-patient" data-id="${esc(pid)}">Eliminar expediente</button><button class="btn" data-action="edit-patient" data-id="${esc(pid)}">Editar datos</button><button class="btn" data-action="payment-for" data-id="${esc(pid)}">${icon('wallet',14)} Registrar pago</button><button class="btn primary" data-action="schedule-next" data-id="${esc(pid)}">${icon('plus',14)} Próxima cita</button>`,true);
+  }
+  function sessionForm(pid,num) {
+    const p=getPatient(pid); if(!p)return;
+    const s=p.sessions[num-1]; if(!s || s.status==='completed')return;
+    showModal(`Programar sesión ${num}`,`${p.name} · Sesión ${num} de 6`,
+      `<form id="sessionForm" class="form-grid"><div class="field"><label for="sessionDate">Fecha de la cita *</label><input type="date" id="sessionDate" name="date" required min="${todayISO()}" value="${esc(s.date&&daysUntil(s.date)>=0?s.date:todayISO())}"></div>
+      <div class="field"><label for="sessionTime">Hora de inicio *</label><input type="time" id="sessionTime" name="time" required value="${esc(s.time||'09:00')}"></div>
+      <div class="field full"><label for="sessionAreas">ÁREA O ÁREAS A DEPILAR *</label><input id="sessionAreas" name="areas" maxlength="220" required autocomplete="off" placeholder="Ej.: Axilas, piernas completas y rostro" value="${esc(s.areas||'')}"><span class="areas-hint">Podés escribir una o varias, separadas por comas, o seleccionar las opciones rápidas.</span>${areaChips(s.areas)}</div>
+      <div class="field"><label for="sessionDuration">Duración prevista (minutos) *</label><input type="number" id="sessionDuration" name="duration" min="5" max="480" step="5" required value="${esc(s.plannedMinutes||45)}"></div>
+      <div class="field"><label>Horario estimado</label><div id="endTimePreview" class="session-summary" aria-live="polite">—</div></div>
+      <div class="field full"><span class="small-note">La duración prevista ayuda a evitar cruces de horario. Cuando marcás la sesión como realizada, podrás registrar cuánto tiempo tomó realmente. Las alertas aparecen cuando falten 2 días o 1 día.</span></div></form>`,
+      `<button class="btn" data-action="open-patient" data-id="${esc(pid)}">Volver</button><button class="btn primary" type="submit" form="sessionForm">Guardar cita ${icon('check',15)}</button>`,true);
+    const updateEnd=()=> {const time=$('#sessionTime').value,mins=Number($('#sessionDuration').value),start=timeToMinutes(time);$('#endTimePreview').textContent=Number.isFinite(start)&&mins>=5&&mins<=480&&start+mins<=1440?formatInterval(time,mins):'Verificá hora y duración';};
+    $('#sessionTime').addEventListener('input',updateEnd);$('#sessionDuration').addEventListener('input',updateEnd);updateEnd();
+    $('#sessionAreas').addEventListener('input',()=>{
+      const selected=$('#sessionAreas').value.split(/[,;]+/).map(x=>x.trim().toLocaleLowerCase('es'));
+      document.querySelectorAll('#sessionForm .area-chip').forEach(b=>{const active=selected.includes(b.dataset.area.toLocaleLowerCase('es'));b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});
+    });
+    $('#sessionForm').addEventListener('submit',e=>{
+      e.preventDefault(); const f=new FormData(e.currentTarget); const date=String(f.get('date')||''),time=String(f.get('time')||'');
+      const areas=String(f.get('areas')||'').trim().slice(0,220),duration=asMinutes(f.get('duration'));
+      if(!date||!time||daysUntil(date)<0) {alert('Elegí una fecha válida a partir de hoy.'); return;}
+      if(!areas) {alert('Indicá el área o las áreas a depilar.'); return;}
+      if(!duration||timeToMinutes(time)+duration>1440){alert('Elegí una duración válida que termine dentro del mismo día.');return;}
+      const start=timeToMinutes(time),end=start+duration;
+      const conflicts=allAppointments().filter(a=>!(a.patient.id===pid&&a.session.n===num)&&a.session.date===date&&start<timeToMinutes(a.session.time)+(asMinutes(a.session.plannedMinutes)||45)&&end>timeToMinutes(a.session.time));
+      if(conflicts.length&&!confirm(`Aviso: el horario se cruza con ${plural(conflicts.length,'cita')} de ${conflicts.map(a=>a.patient.name).join(', ')}. ¿Querés programar igualmente?`))return;
+      s.date=date;s.time=time;s.status='scheduled';s.areas=areas;s.plannedMinutes=duration;s.actualMinutes=null;
+      save();render();patientDetail(pid);toast('Cita guardada: áreas y duración registradas.');checkBrowserReminders();
+    });
+  }
+  function completionForm(pid,num,edit=false) {
+    const p=getPatient(pid),s=p?.sessions[num-1];if(!p||!s)return;
+    if(edit&&s.status!=='completed')return;
+    if(!edit&&s.status!=='scheduled')return;
+    showModal(edit?`Editar sesión ${num}`:`Finalizar sesión ${num}`,`${p.name} · Registro del tiempo real`,
+      `<form id="completionForm" class="form-grid">
+      <div class="field full"><div class="session-summary"><strong>Áreas:</strong> ${esc(s.areas||'Sin especificar')}<br><strong>Fecha y hora:</strong> ${esc(s.date?`${prettyDate(s.date)} · ${s.time}`:'Sin registro')}<br><strong>Duración prevista:</strong> ${s.plannedMinutes?`${s.plannedMinutes} min`:'No registrada'}</div></div>
+      <div class="field full"><label for="actualMinutes">Tiempo que duró realmente la sesión (minutos) *</label><input type="number" id="actualMinutes" name="actualMinutes" min="5" max="480" step="1" placeholder="Ej.: 50" required value="${esc(s.actualMinutes||'')}"><span class="areas-hint">Ingresá el tiempo real. No se calcula automáticamente porque puede diferir de lo previsto.</span></div>
+      ${edit?`<div class="field full"><label for="finishedAreas">Área o áreas atendidas</label><input id="finishedAreas" name="areas" maxlength="220" required value="${esc(s.areas||'')}"></div>`:''}
+      </form>`,
+      `<button class="btn" data-action="open-patient" data-id="${esc(pid)}">Cancelar</button><button class="btn primary" type="submit" form="completionForm">${edit?'Guardar detalles':'Marcar como realizada'} ${icon('check',15)}</button>`);
+    $('#completionForm').addEventListener('submit',e=>{
+      e.preventDefault();const f=new FormData(e.currentTarget),actual=asMinutes(f.get('actualMinutes'));
+      if(!actual){alert('Ingresá los minutos reales entre 5 y 480.');return;}
+      if(edit){const areas=String(f.get('areas')||'').trim().slice(0,220);if(!areas){alert('Ingresá las áreas atendidas.');return;}s.areas=areas;}
+      s.actualMinutes=actual;s.status='completed';save();render();patientDetail(pid);toast(edit?'Detalles de la sesión actualizados.':'Sesión realizada y tiempo registrado.');
+    });
+  }
+  function scheduleNext(pid) {
+    const p=getPatient(pid); if(!p)return;
+    const firstPending=p.sessions.find(s=>s.status==='pending');
+    if(firstPending) sessionForm(pid,firstPending.n);
+    else patientDetail(pid);
+  }
+  function renderPayments() {
+    const m=monthPayments(), open=openCharges();
+    const history=[...payments].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,80);
+    const lastSeven=Array.from({length:7},(_,i)=>({date:addDays(todayISO(),i-6)}));
+    lastSeven.forEach(x=>x.value=netTotal(payments.filter(p=>p.date===x.date)));
+    const max=Math.max(1,...lastSeven.map(x=>x.value));
+    const row=x=> `<tr><td><strong>${esc(prettyDate(x.date))}</strong></td><td>${esc(x.patientName||'Sin paciente')}</td><td>${x.session?`Sesión ${x.session}`:esc(x.concept||'Abono')}</td><td>${pill(x.method)}</td><td class="money">${dollars(x.amount)}</td><td class="money">${dollars(Number(x.feePos||0)+Number(x.feeBank||0))}</td><td class="money balance">${dollars(x.net??x.amount)}</td><td><button class="view-btn" data-action="delete-payment" data-id="${esc(x.id)}">Eliminar ${icon('close',12)}</button></td></tr>`;
+    return `${notice}<div class="page-head"><div><h1>Caja y movimientos.</h1><p class="subtitle">Pagos totales, parciales, comisiones y saldos por cobrar.</p></div><div class="title-split"><button class="btn" data-action="commission-settings">${icon('shield',14)} Comisiones de tarjeta</button><button class="btn primary" data-action="new-payment">${icon('plus')} Registrar pago</button></div></div>
+      <div class="metrics">
+      ${metric('Cobrado hoy',dollars(paidTotal(todayPayments())),'coin','Importe bruto recibido')}
+      ${metric('Cobrado este mes',dollars(paidTotal(m)),'wallet','Importe bruto recibido')}
+      ${metric('Neto del mes',dollars(netTotal(m)),'coin',`Comisiones: ${dollars(feeTotal(m))}`)}
+      ${metric('Pendiente de pago',dollars(openBalance()),'alert',`${open.length} cobros abiertos`,true)}
+      </div>
+      <section class="panel" style="margin-bottom:20px"><div class="panel-head"><div><h2>Cuentas por cobrar ${pill(open.length,open.length?'red':'neutral')}</h2><p>Los pagos parciales siguen aquí hasta quedar cancelados.</p></div></div>
+        ${open.length?`<div class="table-wrap"><table><thead><tr><th>Paciente</th><th>Concepto</th><th>Total</th><th>Pagado</th><th>Falta pagar</th><th></th></tr></thead><tbody>${open.map(ch=>`<tr><td><strong>${esc(getPatient(ch.patientId)?.name||ch.patientName)}</strong></td><td>${esc(ch.concept)}</td><td>${dollars(ch.total)}</td><td>${dollars(chargePaidCents(ch)/100)}</td><td>${pill(dollars(chargeBalanceCents(ch)/100),'red')}</td><td><button class="view-btn" data-action="pay-charge" data-id="${esc(ch.id)}">Registrar abono ${icon('arrow',12)}</button></td></tr>`).join('')}</tbody></table></div>`:empty('check','No existen saldos de cobros abiertos.')}
+      </section>
+      <div class="dashboard-grid" style="margin-bottom:20px">
+        <section class="panel"><div class="panel-head"><div><h2>Movimientos recientes</h2><p>Bruto recibido menos cargos POS y banco = neto</p></div><button class="text-link" data-action="backup">${icon('download',13)} Respaldar</button></div>
+          <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Paciente</th><th>Concepto</th><th>Método</th><th>Bruto</th><th>Comisión</th><th>Neto</th><th></th></tr></thead><tbody>${history.length?history.map(row).join(''):`<tr><td colspan="8">${empty('wallet','Todavía no hay pagos registrados.')}</td></tr>`}</tbody></table></div>
+        </section>
+        <section class="panel"><div class="panel-head"><div><h2>Neto de los últimos 7 días</h2><p>Ingresos después de comisiones</p></div></div>
+          <div style="padding:18px 24px"><strong style="font-size:22px;font-family:Georgia,serif;font-weight:500">${dollars(netTotal(payments.filter(x=>daysUntil(x.date)>=-6&&daysUntil(x.date)<=0)))}</strong>
+          <div class="bar-chart">${lastSeven.map(x=>`<div class="chart-col" title="${esc(prettyDate(x.date))}: ${dollars(x.value)}"><div class="chart-bar" style="height:${Math.max(3,Math.round(x.value/max*95))}%"></div><small>${esc(prettyDate(x.date,{weekday:'short'}))}</small></div>`).join('')}</div>
+          <p class="small-note">El saldo del paciente baja por el pago bruto; las comisiones reducen solamente el ingreso neto de DEPIDERM.</p></div>
+        </section>
+      </div><div class="action-card"><div><h3>Respaldo de datos</h3><p>Descargá un respaldo y guardalo en un lugar seguro: contiene datos privados.</p></div><div class="hero-actions"><button class="btn sm" data-action="backup">${icon('download',14)} Exportar</button></div></div>`;
+  }
+  function commissionSettings() {
+    showModal('Comisiones de tarjeta','Definí las tasas predeterminadas. Se guardan como referencia para nuevos pagos.',
+    `<form id="commissionForm" class="form-grid"><div class="field"><label for="defaultPos">Comisión del POS (%)</label><input id="defaultPos" name="pos" type="number" min="0" max="100" step="0.01" required value="${settings.posPct}"></div>
+    <div class="field"><label for="defaultBank">Comisión del banco (%)</label><input id="defaultBank" name="bank" type="number" min="0" max="100" step="0.01" required value="${settings.bankPct}"></div>
+    <div class="field full"><p class="small-note">Ambos porcentajes se descuentan del monto bruto cobrado con tarjeta. No se modifica el saldo que el paciente pagó. Las tasas existentes de los pagos anteriores no se recalculan.</p></div></form>`,
+    `<button class="btn" data-action="close-modal">Cancelar</button><button class="btn primary" type="submit" form="commissionForm">Guardar comisiones ${icon('check',14)}</button>`);
+    $('#commissionForm').addEventListener('submit',e=>{
+      e.preventDefault();const f=new FormData(e.currentTarget); const pos=Number(f.get('pos')),bank=Number(f.get('bank'));
+      if(!Number.isFinite(pos)||!Number.isFinite(bank)||pos<0||bank<0||pos+bank>=100){alert('Ingresá porcentajes válidos. La suma debe ser menor que 100%.');return;}
+      settings={posPct:pos,bankPct:bank};saveSettings();closeModal();render();toast('Porcentajes guardados para futuros pagos.');
+    });
+  }
+  function paymentForm(pid, initialChargeId) {
+    if(!patients.length){alert('Primero registrá un paciente de prueba.');return;}
+    const ch=initialChargeId?charges.find(x=>x.id===initialChargeId):null;
+    const p=ch?getPatient(ch.patientId):pid?getPatient(pid):null;
+    const opts=patients.map(x=>`<option value="${esc(x.id)}" ${p&&p.id===x.id?'selected':''}>${esc(x.name)}</option>`).join('');
+    showModal('Registrar pago','Nuevo cobro o abono de un saldo pendiente',
+      `<form class="form-grid" id="paymentForm">
+      <div class="field full"><label for="payPatient">Paciente *</label><select name="patientId" id="payPatient" required><option value="">Seleccioná un paciente</option>${opts}</select></div>
+      <div class="field full"><label for="payMode">¿Qué vas a registrar?</label><select name="mode" id="payMode"><option value="new" ${!ch?'selected':''}>Nuevo cobro</option><option value="existing" ${ch?'selected':''}>Abonar saldo pendiente</option></select></div>
+      <div class="field full" id="existingChargeFields" hidden><label for="payCharge">Cobro con saldo pendiente *</label><select id="payCharge" name="chargeId"></select><p id="chargeBalanceText" class="small-note"></p></div>
+      <div id="newChargeFields" class="field full"><div class="form-grid">
+       <div class="field"><label for="payTotal">Precio total de este cobro (USD) *</label><input id="payTotal" name="total" type="number" min="0.01" max="999999" step="0.01" placeholder="Ej.: 180.00"></div>
+       <div class="field"><label for="paySession">¿Qué se cobra?</label><select name="session" id="paySession"><option value="0">Tratamiento / General</option>${Array.from({length:6},(_,i)=>`<option value="${i+1}">Sesión ${i+1}</option>`).join('')}</select></div>
+       <div class="field full"><label for="payConcept">Descripción</label><input id="payConcept" name="concept" maxlength="140" placeholder="Ej.: Paquete de 6 sesiones" value="Tratamiento"></div>
+       </div></div>
+      <div class="field"><label for="payDate">Fecha del pago *</label><input id="payDate" type="date" name="date" required value="${todayISO()}"></div>
+      <div class="field"><label for="payMethod">Método de pago *</label><select name="method" id="payMethod"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option></select></div>
+      <div class="field"><label for="payCoverage">Estado de este pago *</label><select name="coverage" id="payCoverage"><option value="total">Pago total</option><option value="partial">Pago parcial</option></select></div>
+      <div class="field"><label for="payAmount">Cantidad recibida (USD) *</label><input id="payAmount" name="amount" type="number" min="0.01" max="999999" step="0.01" required placeholder="0.00" readonly></div>
+      <div id="cardFeeFields" class="field full" hidden><div class="form-grid"><div class="field"><label for="payPos">POS (%)</label><input id="payPos" name="pos" type="number" min="0" max="100" step="0.01" value="${settings.posPct}"></div><div class="field"><label for="payBank">Banco (%)</label><input id="payBank" name="bank" type="number" min="0" max="100" step="0.01" value="${settings.bankPct}"></div></div></div>
+      <div class="field full"><div class="payment-preview" id="paymentPreview" aria-live="polite"></div></div>
+      </form>`,
+      `<button class="btn" data-action="close-modal">Cancelar</button><button type="submit" form="paymentForm" class="btn primary">${icon('check',14)} Guardar pago</button>`,true);
+    const patient=$('#payPatient'),mode=$('#payMode'),existing=$('#payCharge'),coverage=$('#payCoverage'),amount=$('#payAmount'),total=$('#payTotal'),method=$('#payMethod');
+    function availableCharges() {
+      const list=openCharges().filter(x=>x.patientId===patient.value);
+      existing.innerHTML=list.length?list.map(x=>`<option value="${esc(x.id)}" ${ch?.id===x.id?'selected':''}>${esc(x.concept)} · falta ${dollars(chargeBalanceCents(x)/100)}</option>`).join(''):'<option value="">Sin saldos pendientes</option>';
+      if(ch && list.some(x=>x.id===ch.id))existing.value=ch.id;
+      if(mode.value==='existing'&&!list.length)$('#chargeBalanceText').textContent='Este paciente no tiene cobros pendientes.';
+    }
+    const balance=()=>{
+      if(mode.value==='new')return cents(total.value)/100;
+      const selected=charges.find(x=>x.id===existing.value);return selected?chargeBalanceCents(selected)/100:0;
+    };
+    let previousBalance='';
+    function refreshPrice(force=false) {
+      const val=balance();
+      const isTotal=coverage.value==='total';
+      amount.readOnly=isTotal;
+      if(isTotal||force){amount.value=val>0?val.toFixed(2):'';}
+      const feeBlock=$('#cardFeeFields'),card=method.value==='Tarjeta';feeBlock.hidden=!card;
+      const showExisting=mode.value==='existing';$('#existingChargeFields').hidden=!showExisting;$('#newChargeFields').hidden=showExisting;
+      const entered=Number(amount.value)||0;
+      const p=card?validPercent($('#payPos').value):0,b=card?validPercent($('#payBank').value):0;
+      const fees=feeFor(entered,p,b),missing=Math.max(0,cents(val)-cents(entered))/100;
+      $('#chargeBalanceText').textContent=showExisting?`Saldo actual: ${dollars(val)}`:'';
+      $('#paymentPreview').innerHTML=`<div><small>Cobro pendiente antes de pagar</small><strong>${dollars(val)}</strong></div><div><small>Pago recibido (bruto)</small><strong>${dollars(entered)}</strong></div><div><small>POS + banco</small><strong>${dollars(fees.feePos+fees.feeBank)}</strong></div><div><small>Ingreso neto DEPIDERM</small><strong>${dollars(fees.net)}</strong></div><div class="${missing>0?'owing':''}"><small>Quedará pendiente de pago</small><strong>${dollars(missing)}</strong></div>`;
+      previousBalance=String(val);
+    }
+    patient.addEventListener('change',()=>{availableCharges();refreshPrice(true)});
+    mode.addEventListener('change',()=>{availableCharges();refreshPrice(true)});
+    existing.addEventListener('change',()=>refreshPrice(true));
+    coverage.addEventListener('change',()=>{if(coverage.value==='partial' && Number(amount.value)>=balance())amount.value='';refreshPrice();});
+    total.addEventListener('input',()=>refreshPrice());
+    amount.addEventListener('input',()=>refreshPrice());
+    method.addEventListener('change',()=>refreshPrice());
+    $('#payPos').addEventListener('input',()=>refreshPrice());$('#payBank').addEventListener('input',()=>refreshPrice());
+    availableCharges();refreshPrice(true);
+    $('#paymentForm').addEventListener('submit',e=>{
+      e.preventDefault();const f=new FormData(e.currentTarget),p=getPatient(String(f.get('patientId')||''));
+      const paid=usd(f.get('amount')),date=String(f.get('date')||''),payMode=String(f.get('mode'));
+      if(!p || !Number.isFinite(paid) || paid<=0 || paid>999999 || !/^\d{4}-\d{2}-\d{2}$/.test(date)){alert('Revisá el paciente, importe recibido y fecha.');return;}
+      const paymentMethod=String(f.get('method')||'Efectivo');
+      const pos=paymentMethod==='Tarjeta'?Number(f.get('pos')):0,bank=paymentMethod==='Tarjeta'?Number(f.get('bank')):0;
+      if(!Number.isFinite(pos)||!Number.isFinite(bank)||pos<0||bank<0||pos+bank>=100){alert('Revisá las comisiones. La suma debe ser menor que 100%.');return;}
+      let selected=payMode==='existing'?charges.find(x=>x.id===String(f.get('chargeId')||'')):null;
+      if(payMode==='existing'&&(!selected||selected.patientId!==p.id||chargeBalanceCents(selected)<=0)){alert('Seleccioná un cobro con saldo pendiente.');return;}
+      const owed=payMode==='new'?cents(f.get('total')):chargeBalanceCents(selected);
+      if(!Number.isFinite(owed)||owed<=0||owed>99999900){alert('Ingresá un precio total válido.');return;}
+      if(cents(paid)>owed){alert('El pago recibido no puede exceder el saldo.');return;}
+      if(f.get('coverage')==='total'&&cents(paid)!==owed){alert('En pago total, el monto recibido debe cubrir todo el saldo.');return;}
+      if(f.get('coverage')==='partial'&&cents(paid)>=owed){alert('En pago parcial, el monto debe ser menor que el saldo.');return;}
+      if(payMode==='new'){
+        selected={id:id(),patientId:p.id,patientName:p.name,createdAt:date,total:owed/100,
+          session:Math.max(0,Math.min(6,Number(f.get('session'))||0)),concept:String(f.get('concept')||'Tratamiento').trim().slice(0,140)||'Tratamiento'};
+        charges.push(selected);saveCharges();
+      }
+      const fees=feeFor(paid,pos,bank);
+      payments.push({id:id(),chargeId:selected.id,patientId:p.id,patientName:p.name,session:selected.session,
+        amount:paid,date,method:paymentMethod,concept:payMode==='existing'?'Abono · '+selected.concept:selected.concept,
+        posPct:pos,bankPct:bank,feePos:fees.feePos,feeBank:fees.feeBank,net:fees.net});
+      savePayments();closeModal();render();
+      toast(chargeBalanceCents(selected)>0?`Pago parcial registrado. Falta cobrar ${dollars(chargeBalanceCents(selected)/100)}.`:'Pago total registrado. Saldo cancelado.');
+    });
+  }
+  function backupData() {
+    const content={app:'DEPIDERM ADMIN',version:5,exportedAt:new Date().toISOString(),patients,payments,charges,settings};
+    const blob=new Blob([JSON.stringify(content,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`DEPIDERM_respaldo_privado_${todayISO()}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    toast('Respaldo descargado. Contiene información privada: guardalo con seguridad.');
+  }
+  async function restoreData(input) {
+    const file=input.files?.[0];if(!file)return;
+    try {
+      if(file.size>2*1024*1024)throw new Error('Archivo demasiado grande.');
+      const raw=JSON.parse(await file.text());
+      if(raw.app!=='DEPIDERM ADMIN'||!Array.isArray(raw.patients)||!Array.isArray(raw.payments))throw new Error('El archivo no corresponde a un respaldo válido de DEPIDERM ADMIN.');
+      if(!confirm('¿Restaurar este respaldo? Se reemplazarán pacientes, pagos, saldos y porcentajes de prueba guardados en este navegador.'))return;
+      patients=normalizeClients(raw.patients);
+      payments=raw.payments.filter(x=>x&&typeof x==='object'&&typeof x.id==='string'&&typeof x.amount==='number'&&x.amount>0&&x.amount<=999999&&typeof x.date==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x.date)).map(x=>({
+        id:String(x.id).slice(0,100),patientId:String(x.patientId||'').slice(0,100),patientName:String(x.patientName||'').slice(0,120),session:Math.max(0,Math.min(6,Number(x.session)||0)),amount:usd(x.amount),date:x.date,method:String(x.method||'Efectivo').slice(0,50),concept:String(x.concept||'Pago de sesión').slice(0,140),
+        chargeId:String(x.chargeId||''),posPct:validPercent(x.posPct),bankPct:validPercent(x.bankPct),feePos:usd(x.feePos),feeBank:usd(x.feeBank),net:Number.isFinite(Number(x.net))?usd(x.net):usd(x.amount)
+      }));
+      charges=normalizeCharges(raw.charges||[]);
+      settings={posPct:validPercent(raw.settings?.posPct),bankPct:validPercent(raw.settings?.bankPct)};
+      save();savePayments();saveCharges();saveSettings();render();toast('Respaldo de datos restaurado.');
+    }catch(e){alert('No se pudo importar: '+e.message)}finally{input.value='';}
+  }
+  function loadDemo() {
+    if(patients.length) { alert('La demostración solo puede cargarse cuando la lista está vacía, para no modificar pacientes existentes.');return; }
+    const base=todayISO();
+    const sample=(name,completed,appointments)=>{
+      const p={id:id(),name,age:28,phone:'0000-0000',notes:'Expediente de demostración. No corresponde a un paciente real.',createdAt:base,sessions:freshSessions()};
+      for(let i=0;i<completed;i++){p.sessions[i]={n:i+1,date:addDays(base,-(completed-i)*25),time:'10:00',status:'completed',areas:'Axilas',plannedMinutes:45,actualMinutes:50};}
+      appointments.forEach(([num,delta,time])=>{p.sessions[num-1]={n:num,date:addDays(base,delta),time,status:'scheduled',areas:'Axilas, piernas',plannedMinutes:60,actualMinutes:null};});
+      return p;
+    };
+    patients=[sample('Paciente de prueba A',1,[]),sample('Paciente de prueba B',1,[[2,1,'10:00']]),sample('Paciente de prueba C',0,[[1,2,'14:30']]),sample('Paciente de prueba D',1,[[2,-1,'09:30']])];
+    save();render();
+  }
+  async function enableNotifications() {
+    if(!('Notification' in window)) {alert('Este navegador no admite notificaciones. Podés usar las alertas dentro del sistema.');return;}
+    if(!window.isSecureContext) {alert('Las notificaciones del navegador suelen requerir abrir el sistema desde una dirección HTTPS. Las alertas internas sí funcionan.');return;}
+    const perm=await Notification.requestPermission();
+    if(perm==='granted') {alert('Notificaciones activadas para cuando tengás DEPIDERM abierto.');checkBrowserReminders();}
+    else alert('No se activaron las notificaciones. Podés seguir viendo los recordatorios dentro del sistema.');
+  }
+  function checkBrowserReminders() {
+    if(!('Notification' in window)||Notification.permission!=='granted')return;
+    let previous={}; try{previous=JSON.parse(localStorage.getItem(NOTIFICATION_KEY)||'{}');}catch{}
+    const today=todayISO();
+    const reminders=reminderAppointments();
+    for(const a of reminders) {
+      const key=`${a.patient.id}-${a.session.n}-${a.session.date}-${today}`;
+      if(previous[key])continue;
+      try {
+        new Notification('DEPIDERM · Recordatorio de cita',{body:`Hay una sesión programada ${a.days===1?'mañana':'en dos días'} a las ${a.session.time}. Abrí la agenda para consultar los datos.`,tag:key});
+        previous[key]=true;
+      } catch {}
+    }
+    const compact=Object.fromEntries(Object.entries(previous).filter(([key])=>key.endsWith('-'+today)));
+    try{localStorage.setItem(NOTIFICATION_KEY,JSON.stringify(compact));}catch{}
+  }
+  document.addEventListener('click',e=>{
+    const btn=e.target.closest('[data-view], [data-action]');if(!btn)return;
+    if(btn.dataset.view){view=btn.dataset.view;render();return;}
+    const action=btn.dataset.action, pid=btn.dataset.id,num=Number(btn.dataset.num);
+    if(action==='new-patient')return patientForm();
+    if(action==='close-modal')return closeModal();
+    if(action==='open-patient')return patientDetail(pid);
+    if(action==='edit-patient')return patientForm(pid);
+    if(action==='schedule-next')return scheduleNext(pid);
+    if(action==='schedule')return sessionForm(pid,num);
+    if(action==='complete'){
+      const p=getPatient(pid),s=p?.sessions[num-1];if(!s)return;
+      return completionForm(pid,num);
+    }
+    if(action==='edit-completed')return completionForm(pid,num,true);
+    if(action==='toggle-area'){
+      const input=$('#sessionAreas');if(!input)return;const area=btn.dataset.area;let list=input.value.split(/[,;]+/).map(t=>t.trim()).filter(Boolean);const i=list.findIndex(t=>t.toLocaleLowerCase('es')===area.toLocaleLowerCase('es'));if(i>=0)list.splice(i,1);else list.push(area);input.value=list.join(', ');input.dispatchEvent(new Event('input',{bubbles:true}));input.focus();return;
+    }
+    if(action==='unschedule'){
+      const p=getPatient(pid),s=p?.sessions[num-1];if(!s)return;
+      if(!confirm('¿Quitar esta fecha de la agenda? La sesión quedará sin programar.'))return;
+      s.status='pending';s.date='';s.time='';s.actualMinutes=null;save();render();patientDetail(pid);return;
+    }
+    if(action==='delete-patient'){
+      const p=getPatient(pid); if(!p)return;
+      if(!confirm(`¿Eliminar el expediente y las 6 sesiones de ${p.name}? Los movimientos de caja ya registrados se conservarán. Esta acción no se puede deshacer.`))return;
+      if(patientCharges(pid).length){alert('Este expediente tiene cobros o pagos asociados. Para conservar la trazabilidad de caja, no puede eliminarse hasta resolver esos movimientos de prueba.');return;}
+      patients=patients.filter(x=>x.id!==pid);save();closeModal();render();return;
+    }
+    if(action==='demo')return alert('Los ejemplos están desactivados en la versión en línea.');
+    if(action==='new-payment')return paymentForm();
+    if(action==='commission-settings')return commissionSettings();
+    if(action==='pay-charge')return paymentForm(null,pid);
+    if(action==='payment-for')return paymentForm(pid);
+    if(action==='delete-payment'){
+      const payment=payments.find(x=>x.id===pid);if(!payment)return;
+      if(!confirm(`¿Eliminar el pago de ${dollars(payment.amount)}? Si pertenece a un cobro, el saldo pendiente se actualizará.`))return;
+      payments=payments.filter(x=>x.id!==pid);savePayments();render();toast('Pago eliminado del registro de prueba.');return;
+    }
+    if(action==='backup')return backupData();
+    if(action==='logout')return logoutOnline();
+    if(action==='cloud-retry')return flushCloudSave();
+    if(action==='cloud-reload')return reloadAfterConflict();
+    if(action==='cloud-export')return backupData();
+    if(action==='restore')return alert('La importación masiva está desactivada en producción para proteger los datos compartidos.');
+    if(action==='calendar-today'){monthDate=new Date();monthDate.setDate(1);selectedDay=todayISO();render();return;}
+    if(action==='reopen-session'){
+      const p=getPatient(pid),s=p?.sessions[num-1];if(!s||s.status!=='completed')return;
+      if(!confirm(`¿Corregir la sesión ${num}? Volverá a estar sin programar.`))return;
+      s.status='pending';s.date='';s.time='';s.actualMinutes=null;save();render();patientDetail(pid);toast('La sesión volvió a quedar pendiente.');return;
+    }
+    if(action==='enable-notifications')return enableNotifications();
+    if(action==='month-prev'||action==='month-next'){
+      monthDate.setMonth(monthDate.getMonth()+(action==='month-next'?1:-1));selectedDay=`${monthDate.getFullYear()}-${String(monthDate.getMonth()+1).padStart(2,'0')}-01`;render();return;
+    }
+    if(action==='select-day'){selectedDay=btn.dataset.date;render();return;}
+  });
+  document.addEventListener('input',e=>{
+    if(e.target?.id==='patientSearch'){
+      search=e.target.value;
+      const caret=e.target.selectionStart;
+      render();
+      const input=$('#patientSearch');input?.focus();try{input?.setSelectionRange(caret,caret);}catch{}
+    }
+  });
+  document.addEventListener('change',e=>{if(e.target?.id==='patientFilter'){filter=e.target.value;render();}});
+  // Importación masiva desactivada en producción.
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+  window.addEventListener('focus',()=>{if(onlineReady){if(dirty)flushCloudSave();else pullCloudState();render();checkBrowserReminders();}});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden && onlineReady){if(dirty)flushCloudSave();else pullCloudState();checkBrowserReminders();}});
+  setInterval(()=>{if(onlineReady){render();checkBrowserReminders();if(dirty)flushCloudSave();else pullCloudState();}},30*1000);
+  bootOnline();
+})();
+</script>
 </body>
 </html>
