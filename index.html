@@ -799,7 +799,7 @@
       const areas=String(f.get('areas')||'').trim().slice(0,220);
       const plannedRaw=String(f.get('planned')||''),actualRaw=String(f.get('actual')||'');
       const planned=plannedRaw?asMinutes(plannedRaw):null,actual=actualRaw?asMinutes(actualRaw):null;
-      if(!date||daysUntil(date)<0){alert('La fecha debe ser hoy o anterior.');return;}
+      if(!date||daysUntil(date)>0){alert('La fecha no puede ser posterior a hoy.');return;}
       const previousSession=p.sessions.slice(0,num-1).reverse().find(x=>x.status==='completed'&&x.date);
       if(previousSession&&date<previousSession.date){alert('La fecha no puede ser anterior a la sesión realizada previamente.');return;}
       if(!areas){alert('Indicá el área o las áreas atendidas.');return;}
