@@ -1032,7 +1032,8 @@
     if(action==='delete-patient'){
       const p=getPatient(pid); if(!p)return;
       if(!confirm(`¿Eliminar el expediente y las 6 sesiones de ${p.name}? Los movimientos de caja ya registrados se conservarán. Esta acción no se puede deshacer.`))return;
-      if(patientCharges(pid).length){alert('Este expediente tiene cobros o pagos asociados. Para conservar la trazabilidad de caja, no puede eliminarse hasta resolver esos movimientos de prueba.');return;}
+      const pendingCharges=patientCharges(pid).filter(ch=>chargeBalanceCents(ch)>0);
+      if(pendingCharges.length){alert('Este expediente tiene cobros con saldo pendiente. Resolvé primero esos cobros para conservar el saldo correcto.');return;}
       patients=patients.filter(x=>x.id!==pid);save();closeModal();render();return;
     }
     if(action==='demo')return alert('Los ejemplos están desactivados en la versión en línea.');
