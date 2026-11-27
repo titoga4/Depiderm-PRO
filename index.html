@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f6f4f1">
-  <title>DEPIDERM ADMIN · Premium Online v1.0</title>
+  <title>DEPIDERMWEB · Gestión de pacientes</title>
   <style>
     :root {
       --bg: #f7f6f3; --white: #fff; --ink: #282c2b; --muted: #81827e;
@@ -263,7 +263,7 @@
 <body>
   <section id="authScreen" class="auth-screen" aria-labelledby="loginTitle">
     <div class="auth-card">
-      <div class="auth-brand">depiderm<span>.</span></div>
+      <div class="auth-brand">DEPIDERMWEB</div>
       <div class="auth-kicker">ADMINISTRACIÓN · ACCESO PRIVADO</div>
       <div class="auth-divider"></div>
       <h1 id="loginTitle">Bienvenidos</h1>
@@ -273,7 +273,7 @@
         <input id="loginUser" name="username" autocomplete="username" value="Admin" required>
         <label for="loginPass">Contraseña</label>
         <input id="loginPass" name="password" type="password" autocomplete="current-password" placeholder="Tu contraseña de acceso" required>
-        <button class="auth-submit" id="loginButton" type="submit">Ingresar a DEPIDERM</button>
+        <button class="auth-submit" id="loginButton" type="submit">Ingresar a DEPIDERMWEB</button>
         <p class="auth-error" id="authError" role="alert" aria-live="polite"></p>
       </form>
       <div class="auth-footer" id="configNotice">Acceso exclusivo para los socios autorizados.</div>
@@ -281,7 +281,7 @@
   </section>
   <div class="app" id="appRoot" hidden>
     <aside class="sidebar">
-      <div class="wordmark"><strong>depiderm<span style="color:#9a7d6d">.</span></strong><small>ADMINISTRACIÓN</small></div>
+      <div class="wordmark"><strong>DEPIDERMWEB</strong><small>GESTIÓN</small></div>
       <div class="nav-heading">MENÚ PRINCIPAL</div>
       <nav class="nav" aria-label="Navegación principal">
         <button type="button" data-view="dashboard" class="active"><span data-icon="layout"></span><span class="nav-text">Resumen</span></button>
@@ -290,7 +290,7 @@
         <button type="button" data-view="alerts"><span data-icon="bell"></span><span class="nav-text">Alertas</span><span id="navCount" class="nav-count" style="display:none"></span></button>
         <button type="button" data-view="payments"><span data-icon="wallet"></span><span class="nav-text">Caja</span></button>
       </nav>
-      <div class="sidebar-end"><strong>DEPIDERM ADMIN · ONLINE v1.0</strong>Agenda y caja en línea. Acceso compartido mediante autenticación segura.</div>
+      <div class="sidebar-end"><strong>DEPIDERMWEB · ONLINE</strong>Agenda, citas y expedientes en línea.</div>
     </aside>
     <div class="main">
       <header class="topbar">
@@ -609,7 +609,7 @@
   }
   const initials = n => n.trim().split(/\s+/).slice(0,2).map(s=>s[0]?.toUpperCase()||'').join('');
   const pill = (text,cls='neutral') => `<span class="pill ${cls}">${esc(text)}</span>`;
-  const notice = `<div class="notice"><strong>DEPIDERM en línea:</strong> agenda y caja compartidas. Las alertas se muestran dentro del sistema; las notificaciones con la página cerrada requieren configurar un servicio de avisos adicional.</div>`;
+  const notice = `<div class="notice"><strong>DEPIDERMWEB en línea:</strong> agenda y caja compartidas. Las alertas se muestran dentro del sistema; las notificaciones con la página cerrada requieren configurar un servicio de avisos adicional.</div>`;
   function render() {
     if (!onlineReady) return;
     $('#dateTop').textContent = new Intl.DateTimeFormat('es-SV',{weekday:'long',day:'numeric',month:'long'}).format(new Date());
@@ -633,7 +633,7 @@
     const period=new Intl.DateTimeFormat('es-SV',{month:'long',year:'numeric'}).format(new Date());
     return `${notice}
       <div class="hero">
-        <div><div class="eyebrow">DEPIDERM · ORGANIZACIÓN INTELIGENTE</div><h1>Todo en orden. Todo a tiempo.</h1>
+        <div><div class="eyebrow">DEPIDERMWEB · ORGANIZACIÓN INTELIGENTE</div><h1>Todo en orden. Todo a tiempo.</h1>
         <p>Una experiencia de atención cuidada, desde la primera cita hasta la última sesión.</p>
         <div class="stat-inline">${plural(patients.length,'paciente')} · ${in7} citas en los próximos 7 días · ${plural(payments.length,'pago')} registrado${payments.length===1?'':'s'}</div></div>
         <div class="hero-actions"><button class="btn" data-action="new-patient">${icon('plus')} Ingresar paciente</button><button class="btn ghost" data-view="agenda">${icon('calendar')} Abrir agenda</button></div>
@@ -736,7 +736,7 @@
   function closeModal() { $('#modalMount').innerHTML=''; }
   function patientForm(pid) {
     const p=pid?getPatient(pid):null;
-    showModal(p?'Editar paciente':'Ingresar paciente',p?'Actualizá los datos de contacto y observaciones.':'Guardá el expediente y podrás agendar hasta seis sesiones.',
+    showModal(p?'Editar paciente':'Ingresar paciente',p?'Actualizá los datos de contacto y observaciones.':'Guardá el expediente; luego podrás transcribir las sesiones ya realizadas y agendar las siguientes.',
       `<form id="patientForm" class="form-grid"><div class="field full"><label for="name">Nombre completo *</label><input id="name" name="name" maxlength="120" required autocomplete="off" value="${esc(p?.name||'')}" placeholder="Nombre y apellido"></div>
       <div class="field"><label for="age">Edad *</label><input id="age" name="age" type="number" min="0" max="120" required value="${p?esc(p.age):''}" placeholder="Años"></div>
       <div class="field"><label for="phone">Número de contacto *</label><input id="phone" name="phone" type="tel" maxlength="30" required autocomplete="off" value="${esc(p?.phone||'')}" placeholder="0000-0000"></div>
@@ -756,6 +756,7 @@
   function patientDetail(pid) {
     const p=getPatient(pid); if(!p)return;
     const status=patientStatus(p);
+    const firstIncomplete=p.sessions.find(s=>s.status!=='completed');
     const content=`<div class="info-grid"><div class="info"><label>Edad</label><div>${p.age} años</div></div><div class="info"><label>Teléfono</label><div>${esc(p.phone)}</div></div><div class="info"><label>Sesiones realizadas</label><div>${doneCount(p)} de 6</div></div><div class="info"><label>Estado</label><div>${pill(status.text,status.cls)}</div></div></div>
     <div style="padding:0 23px 12px"><div class="small-note" style="font-weight:800;color:#777">OBSERVACIONES</div><p class="detail-notes">${esc(p.notes||'Sin observaciones registradas.')}</p></div>
     <div class="patient-balance"><div><strong>${patientDebtCents(pid)>0?'PENDIENTE DE PAGO':'Estado de pagos'}</strong><div class="small-note">${patientDebtCents(pid)>0?`Saldo por cobrar: ${dollars(patientDebtCents(pid)/100)}`:'Sin saldos abiertos registrados en este expediente'}</div></div>${patientDebtCents(pid)>0?`<button class="btn sm danger" data-action="pay-charge" data-id="${esc(openCharges().find(ch=>ch.patientId===pid)?.id||'')}">Registrar abono ${icon('arrow',12)}</button>`:''}</div>
@@ -764,10 +765,39 @@
        const text=s.status==='completed'?`Realizada ${s.date?`el ${prettyDate(s.date)}`:''}`:s.status==='scheduled'?`${prettyDate(s.date)} · ${s.plannedMinutes?formatInterval(s.time,s.plannedMinutes):s.time}`:'Sin programar';
        const isOverdue=s.status==='scheduled'&&daysUntil(s.date)<0;
        const description=[s.areas?`<b>Áreas:</b> ${esc(s.areas)}`:null,s.plannedMinutes?`<b>Previsto:</b> ${s.plannedMinutes} min`:null,s.status==='completed'&&s.actualMinutes?`<b>Tiempo real:</b> ${s.actualMinutes} min`:null].filter(Boolean).join(' · ');
-       return `<div class="session ${s.status==='completed'?'done':''}"><span class="session-number">${s.status==='completed'?icon('check',17):s.n}</span><div class="session-main"><strong>Sesión ${s.n} ${isOverdue?pill('Vencida','amber'):s.status==='completed'?pill('Realizada','green'):''}</strong><small>${esc(text)}</small>${description?`<small class="session-extra">${description}</small>`:''}</div><div class="session-actions">${s.status==='completed'?`<button class="btn sm" data-action="edit-completed" data-id="${esc(pid)}" data-num="${s.n}">Editar detalles</button><button class="btn sm" data-action="reopen-session" data-id="${esc(pid)}" data-num="${s.n}">Corregir estado</button>`:s.status==='scheduled'?`<button class="btn sm" data-action="schedule" data-id="${esc(pid)}" data-num="${s.n}">Editar cita</button><button class="btn sm primary" data-action="complete" data-id="${esc(pid)}" data-num="${s.n}">Marcar realizada</button><button class="btn sm danger" data-action="unschedule" data-id="${esc(pid)}" data-num="${s.n}">Quitar cita</button>`:`<button class="btn sm primary" data-action="schedule" data-id="${esc(pid)}" data-num="${s.n}">${icon('plus',13)} Agendar</button>`}</div></div>`;
+       return `<div class="session ${s.status==='completed'?'done':''}"><span class="session-number">${s.status==='completed'?icon('check',17):s.n}</span><div class="session-main"><strong>Sesión ${s.n} ${isOverdue?pill('Vencida','amber'):s.status==='completed'?pill('Realizada','green'):''}</strong><small>${esc(text)}</small>${description?`<small class="session-extra">${description}</small>`:''}</div><div class="session-actions">${s.status==='completed'?`<button class="btn sm" data-action="edit-completed" data-id="${esc(pid)}" data-num="${s.n}">Editar detalles</button><button class="btn sm" data-action="reopen-session" data-id="${esc(pid)}" data-num="${s.n}">Corregir estado</button>`:s.status==='scheduled'?`<button class="btn sm" data-action="schedule" data-id="${esc(pid)}" data-num="${s.n}">Editar cita</button><button class="btn sm primary" data-action="complete" data-id="${esc(pid)}" data-num="${s.n}">Marcar realizada</button><button class="btn sm danger" data-action="unschedule" data-id="${esc(pid)}" data-num="${s.n}">Quitar cita</button>`:`${s.n===firstIncomplete?.n?`<button class="btn sm" data-action="record-completed" data-id="${esc(pid)}" data-num="${s.n}">Registrar realizada</button>`:''}<button class="btn sm primary" data-action="schedule" data-id="${esc(pid)}" data-num="${s.n}">${icon('plus',13)} Agendar</button>`}</div></div>`;
     }).join('')}</div>`;
     showModal(p.name,'Expediente de paciente · seguimiento de sesiones',content,
       `<button class="btn danger" data-action="delete-patient" data-id="${esc(pid)}">Eliminar expediente</button><button class="btn" data-action="edit-patient" data-id="${esc(pid)}">Editar datos</button><button class="btn" data-action="payment-for" data-id="${esc(pid)}">${icon('wallet',14)} Registrar pago</button><button class="btn primary" data-action="schedule-next" data-id="${esc(pid)}">${icon('plus',14)} Próxima cita</button>`,true);
+  }
+  function recordCompletedSessionForm(pid,num) {
+    const p=getPatient(pid),s=p?.sessions[num-1];
+    const firstIncomplete=p?.sessions.find(x=>x.status!=='completed');
+    if(!p||!s||s.status!=='pending'||firstIncomplete?.n!==num)return;
+    showModal(`Registrar sesión ${num} realizada`,'Transcripción desde expediente de papel',
+      `<form id="historySessionForm" class="form-grid">
+      <div class="field"><label for="historyDate">Fecha en que se realizó *</label><input type="date" id="historyDate" name="date" required max="${todayISO()}" value="${esc(s.date&&daysUntil(s.date)<=0?s.date:todayISO())}"></div>
+      <div class="field"><label for="historyTime">Hora (opcional)</label><input type="time" id="historyTime" name="time"></div>
+      <div class="field full"><label for="historyAreas">ÁREA O ÁREAS ATENDIDAS *</label><input id="historyAreas" name="areas" maxlength="220" required autocomplete="off" placeholder="Ej.: Axilas, piernas completas y rostro"></div>
+      <div class="field"><label for="historyPlanned">Duración prevista (minutos, opcional)</label><input type="number" id="historyPlanned" name="planned" min="5" max="480" step="5"></div>
+      <div class="field"><label for="historyActual">Tiempo real (minutos, opcional)</label><input type="number" id="historyActual" name="actual" min="5" max="480" step="1"></div>
+      <div class="field full"><span class="small-note">Ingresá lo que aparece en el expediente. Si no anotaron la hora o la duración, podés dejar esos campos vacíos. Se registra en orden, una sesión a la vez.</span></div></form>`,
+      `<button class="btn" data-action="open-patient" data-id="${esc(pid)}">Volver</button><button class="btn primary" type="submit" form="historySessionForm">Guardar sesión realizada ${icon('check',15)}</button>`,true);
+    $('#historySessionForm').addEventListener('submit',e=>{
+      e.preventDefault();const f=new FormData(e.currentTarget);
+      const date=String(f.get('date')||''),time=String(f.get('time')||'');
+      const areas=String(f.get('areas')||'').trim().slice(0,220);
+      const plannedRaw=String(f.get('planned')||''),actualRaw=String(f.get('actual')||'');
+      const planned=plannedRaw?asMinutes(plannedRaw):null,actual=actualRaw?asMinutes(actualRaw):null;
+      if(!date||daysUntil(date)<0){alert('La fecha debe ser hoy o anterior.');return;}
+      const previousSession=p.sessions.slice(0,num-1).reverse().find(x=>x.status==='completed'&&x.date);
+      if(previousSession&&date<previousSession.date){alert('La fecha no puede ser anterior a la sesión realizada previamente.');return;}
+      if(!areas){alert('Indicá el área o las áreas atendidas.');return;}
+      if(plannedRaw&&!planned){alert('La duración prevista debe estar entre 5 y 480 minutos.');return;}
+      if(actualRaw&&!actual){alert('El tiempo real debe estar entre 5 y 480 minutos.');return;}
+      s.date=date;s.time=time;s.status='completed';s.areas=areas;s.plannedMinutes=planned;s.actualMinutes=actual;
+      save();render();patientDetail(pid);toast('Sesión anterior guardada. Ya podés agendar la siguiente.');
+    });
   }
   function sessionForm(pid,num) {
     const p=getPatient(pid); if(!p)return;
@@ -847,7 +877,7 @@
         <section class="panel"><div class="panel-head"><div><h2>Neto de los últimos 7 días</h2><p>Ingresos después de comisiones</p></div></div>
           <div style="padding:18px 24px"><strong style="font-size:22px;font-family:Georgia,serif;font-weight:500">${dollars(netTotal(payments.filter(x=>daysUntil(x.date)>=-6&&daysUntil(x.date)<=0)))}</strong>
           <div class="bar-chart">${lastSeven.map(x=>`<div class="chart-col" title="${esc(prettyDate(x.date))}: ${dollars(x.value)}"><div class="chart-bar" style="height:${Math.max(3,Math.round(x.value/max*95))}%"></div><small>${esc(prettyDate(x.date,{weekday:'short'}))}</small></div>`).join('')}</div>
-          <p class="small-note">El saldo del paciente baja por el pago bruto; las comisiones reducen solamente el ingreso neto de DEPIDERM.</p></div>
+          <p class="small-note">El saldo del paciente baja por el pago bruto; las comisiones reducen solamente el ingreso neto de DEPIDERMWEB.</p></div>
         </section>
       </div><div class="action-card"><div><h3>Respaldo de datos</h3><p>Descargá un respaldo y guardalo en un lugar seguro: contiene datos privados.</p></div><div class="hero-actions"><button class="btn sm" data-action="backup">${icon('download',14)} Exportar</button></div></div>`;
   }
@@ -909,7 +939,7 @@
       const p=card?validPercent($('#payPos').value):0,b=card?validPercent($('#payBank').value):0;
       const fees=feeFor(entered,p,b),missing=Math.max(0,cents(val)-cents(entered))/100;
       $('#chargeBalanceText').textContent=showExisting?`Saldo actual: ${dollars(val)}`:'';
-      $('#paymentPreview').innerHTML=`<div><small>Cobro pendiente antes de pagar</small><strong>${dollars(val)}</strong></div><div><small>Pago recibido (bruto)</small><strong>${dollars(entered)}</strong></div><div><small>POS + banco</small><strong>${dollars(fees.feePos+fees.feeBank)}</strong></div><div><small>Ingreso neto DEPIDERM</small><strong>${dollars(fees.net)}</strong></div><div class="${missing>0?'owing':''}"><small>Quedará pendiente de pago</small><strong>${dollars(missing)}</strong></div>`;
+      $('#paymentPreview').innerHTML=`<div><small>Cobro pendiente antes de pagar</small><strong>${dollars(val)}</strong></div><div><small>Pago recibido (bruto)</small><strong>${dollars(entered)}</strong></div><div><small>POS + banco</small><strong>${dollars(fees.feePos+fees.feeBank)}</strong></div><div><small>Ingreso neto DEPIDERMWEB</small><strong>${dollars(fees.net)}</strong></div><div class="${missing>0?'owing':''}"><small>Quedará pendiente de pago</small><strong>${dollars(missing)}</strong></div>`;
       previousBalance=String(val);
     }
     patient.addEventListener('change',()=>{availableCharges();refreshPrice(true)});
@@ -987,7 +1017,7 @@
     if(!('Notification' in window)) {alert('Este navegador no admite notificaciones. Podés usar las alertas dentro del sistema.');return;}
     if(!window.isSecureContext) {alert('Las notificaciones del navegador suelen requerir abrir el sistema desde una dirección HTTPS. Las alertas internas sí funcionan.');return;}
     const perm=await Notification.requestPermission();
-    if(perm==='granted') {alert('Notificaciones activadas para cuando tengás DEPIDERM abierto.');checkBrowserReminders();}
+    if(perm==='granted') {alert('Notificaciones activadas para cuando tengás DEPIDERMWEB abierto.');checkBrowserReminders();}
     else alert('No se activaron las notificaciones. Podés seguir viendo los recordatorios dentro del sistema.');
   }
   function checkBrowserReminders() {
@@ -999,7 +1029,7 @@
       const key=`${a.patient.id}-${a.session.n}-${a.session.date}-${today}`;
       if(previous[key])continue;
       try {
-        new Notification('DEPIDERM · Recordatorio de cita',{body:`Hay una sesión programada ${a.days===1?'mañana':'en dos días'} a las ${a.session.time}. Abrí la agenda para consultar los datos.`,tag:key});
+        new Notification('DEPIDERMWEB · Recordatorio de cita',{body:`Hay una sesión programada ${a.days===1?'mañana':'en dos días'} a las ${a.session.time}. Abrí la agenda para consultar los datos.`,tag:key});
         previous[key]=true;
       } catch {}
     }
@@ -1015,6 +1045,7 @@
     if(action==='open-patient')return patientDetail(pid);
     if(action==='edit-patient')return patientForm(pid);
     if(action==='schedule-next')return scheduleNext(pid);
+    if(action==='record-completed')return recordCompletedSessionForm(pid,num);
     if(action==='schedule')return sessionForm(pid,num);
     if(action==='complete'){
       const p=getPatient(pid),s=p?.sessions[num-1];if(!s)return;
