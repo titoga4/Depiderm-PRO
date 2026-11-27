@@ -321,7 +321,7 @@
   let conflict = false;
   let lastSaveError = false;
   let realtimeChannel = null;
-  const EMPTY_STATE = () => ({patients:[],payments:[],charges:[],settings:{posPct:0,bankPct:0}});
+  const EMPTY_STATE = () => ({patients:[],payments:[],charges:[],settings:{posPct:0,bankPct:0,tasaCeroPct:0}});
   function syncLabel(text, kind='') {
     const el=document.getElementById('syncStatus');
     if(el){el.textContent=text;el.className='sync-status '+kind;}
@@ -381,7 +381,7 @@
     patients=normalizeClients(data.patients);
     payments=Array.isArray(data.payments)?data.payments.filter(x=>x && typeof x==='object'):[];
     charges=Array.isArray(data.charges)?normalizeCharges(data.charges):[];
-    settings={posPct:validPercent(data.settings?.posPct),bankPct:validPercent(data.settings?.bankPct)};
+    settings={posPct:validPercent(data.settings?.posPct),bankPct:validPercent(data.settings?.bankPct),tasaCeroPct:validPercent(data.settings?.tasaCeroPct)};
     closeModal();
     render();
     checkBrowserReminders();
@@ -437,7 +437,7 @@
     onlineReady=false;
     if(realtimeChannel){await onlineClient.removeChannel(realtimeChannel);realtimeChannel=null;}
     await onlineClient.auth.signOut();
-    patients=[];payments=[];charges=[];settings={posPct:0,bankPct:0};
+    patients=[];payments=[];charges=[];settings={posPct:0,bankPct:0,tasaCeroPct:0};
     document.getElementById('appRoot').hidden=true;
     document.getElementById('content').replaceChildren();
     document.getElementById('modalMount').replaceChildren();
@@ -548,7 +548,7 @@
   let payments = [];
   let charges = [];
   function validPercent(n) { return Number.isFinite(Number(n)) ? Math.min(100,Math.max(0,Number(n))) : 0; }
-  let settings={posPct:0,bankPct:0};
+  let settings={posPct:0,bankPct:0,tasaCeroPct:0};
   let view = 'dashboard';
   let search = '';
   let filter = 'all';
@@ -573,17 +573,16 @@
   }
   const paidTotal = arr => arr.reduce((sum,x)=>sum+Number(x.amount||0),0);
   const netTotal = arr => arr.reduce((sum,x)=>sum+Number(x.net??x.amount??0),0);
-  const feeTotal = arr => arr.reduce((sum,x)=>sum+Number(x.feePos||0)+Number(x.feeBank||0),0);
+  const feeTotal = arr => arr.reduce((sum,x)=>sum+Number(x.feePos||0)+Number(x.feeBank||0)+Number(x.feeTasaCero||0),0);
   const chargePaidCents = ch => payments.filter(x=>x.chargeId===ch.id).reduce((n,x)=>n+cents(x.amount),0);
   const chargeBalanceCents = ch => Math.max(0,cents(ch.total)-chargePaidCents(ch));
   const openCharges = () => charges.filter(ch=>chargeBalanceCents(ch)>0 && patients.some(p=>p.id===ch.patientId));
   const patientCharges = pid => charges.filter(ch=>ch.patientId===pid);
   const patientDebtCents = pid => patientCharges(pid).reduce((n,ch)=>n+chargeBalanceCents(ch),0);
   const openBalance = () => openCharges().reduce((n,ch)=>n+chargeBalanceCents(ch),0)/100;
-  const feeFor = (amount,posPct,bankPct) => {
-    const pos=cents(amount)*validPercent(posPct)/100, bank=cents(amount)*validPercent(bankPct)/100;
-    const feePos=Math.round(pos),feeBank=Math.round(bank);
-    return {feePos:feePos/100,feeBank:feeBank/100,net:(cents(amount)-feePos-feeBank)/100};
+  const feeFor = (amount,posPct,bankPct,tasaCeroPct) => {
+    const feePos=Math.round(cents(amount)*validPercent(posPct)/100), feeBank=Math.round(cents(amount)*validPercent(bankPct)/100), feeTasaCero=Math.round(cents(amount)*validPercent(tasaCeroPct)/100);
+    return {feePos:feePos/100,feeBank:feeBank/100,feeTasaCero:feeTasaCero/100,net:(cents(amount)-feePos-feeBank-feeTasaCero)/100};
   };
   const currentMonth = () => todayISO().slice(0,7);
   const monthPayments = () => payments.filter(x=>x.date.slice(0,7)===currentMonth());
@@ -597,7 +596,18 @@
   const allAppointments = () => patients.flatMap(p=>p.sessions.filter(s=>s.status==='scheduled'&&s.date).map(s=>({patient:p,session:s,days:daysUntil(s.date)})));
   const reminderAppointments = () => allAppointments().filter(a=>a.days===1||a.days===2).sort((a,b)=>a.days-b.days);
   const overdueAppointments = () => allAppointments().filter(a=>a.days<0).sort((a,b)=>a.days-b.days);
-  const pendingPatients = () => patients.filter(needsScheduling);
+  function followUpDeadline(p) {
+    const completed=p.sessions.filter(s=>s.status==='completed'&&s.date).sort((a,b)=>a.date.localeCompare(b.date));
+    const latest=completed[completed.length-1];
+    const base=latest?.date||todayISO();
+    const [year,month]=base.split('-').map(Number);
+    const end=new Date(year,month+1,0);
+    const date=`${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,'0')}-${String(end.getDate()).padStart(2,'0')}`;
+    const monthName=new Intl.DateTimeFormat('es-SV',{month:'long'}).format(end);
+    const daysLeft=daysUntil(date);
+    const countdown=daysLeft>1?`Faltan ${daysLeft} días para fin de ${monthName}.`:daysLeft===1?`Falta 1 día para fin de ${monthName}.`:daysLeft===0?`Hoy termina ${monthName}.`:`${monthName} terminó hace ${Math.abs(daysLeft)} días.`;
+    return {date,monthName,daysLeft,countdown};
+  }  const pendingPatients = () => patients.filter(needsScheduling);
   const todaysAppointments = () => allAppointments().filter(a=>a.days===0);
   const allUpcoming = () => allAppointments().filter(a=>a.days>=0).sort((a,b)=> `${a.session.date}T${a.session.time}`.localeCompare(`${b.session.date}T${b.session.time}`));
   function patientStatus(p) {
@@ -667,7 +677,7 @@
   }
   function makeAlerts() {
     return [
-      ...pendingPatients().map(p=>({type:'pending',p,title:'PENDIENTE DE PROGRAMAR',sub:`${p.name} completó ${plural(doneCount(p),'sesión')} y no tiene próxima cita.`})),
+      ...pendingPatients().map(p=>{const deadline=followUpDeadline(p);return {type:'pending',p,deadline,title:'SIN PRÓXIMA CITA',sub:`${p.name} · ${plural(doneCount(p),'sesión')} realizadas. ${deadline.countdown} Sigue pendiente hasta agendar.`};}),
       ...openCharges().map(ch=>({type:'debt',p:getPatient(ch.patientId),charge:ch,title:'PENDIENTE DE PAGO',sub:`${getPatient(ch.patientId)?.name||ch.patientName} · ${dollars(chargeBalanceCents(ch)/100)} por cobrar · ${ch.concept}`})),
       ...overdueAppointments().map(a=>({type:'overdue',p:a.patient,s:a.session,title:'Cita vencida',sub:`${a.patient.name} · Sesión ${a.session.n} · ${prettyDate(a.session.date)}`})),
       ...reminderAppointments().map(a=>({type:'reminder',p:a.patient,s:a.session,title:a.days===1?'Cita mañana':'Cita en 2 días',sub:`${a.patient.name} · Sesión ${a.session.n} · ${shortDate(a.session.date)} a las ${a.session.time}`}))
@@ -683,7 +693,7 @@
   function renderAlerts() {
     const all = makeAlerts();
     const pending = all.filter(a=>a.type==='pending'), debts=all.filter(a=>a.type==='debt'),expired=all.filter(a=>a.type==='overdue'),reminders=all.filter(a=>a.type==='reminder');
-    return `${notice}<div class="page-head"><div><h1>Alertas y seguimiento.</h1><p class="subtitle">La programación y los saldos sin cancelar siguen visibles en rojo hasta quedar resueltos.</p></div><button class="btn" data-action="enable-notifications">${icon('bell')} Activar avisos del navegador</button></div>
+    return `${notice}<div class="page-head"><div><h1>Alertas y seguimiento.</h1><p class="subtitle">Las alertas de próxima sesión y los saldos pendientes siguen visibles hasta resolverlos.</p></div><button class="btn" data-action="enable-notifications">${icon('bell')} Activar avisos del navegador</button></div>
       <div class="metrics" style="grid-template-columns:repeat(2,minmax(0,1fr))">
         ${metric('Sin próxima sesión',pending.length,'alert','Pendientes permanentes',true)}
         ${metric('Citas vencidas',expired.length,'clock','Requieren revisión')}
@@ -691,7 +701,7 @@
         ${metric('Pendiente de pago',dollars(openBalance()),'wallet',`${debts.length} cuentas por cobrar`,true)}
       </div>
       <div class="alert-list-stack">
-        ${alertGroup('Pendientes de programar','Pacientes que ya iniciaron tratamiento sin nueva fecha',pending,'No hay pacientes pendientes de programar.')}
+        ${alertGroup('Sin próxima cita','Cuenta regresiva al fin del mes siguiente a la última sesión; la alerta permanece hasta agendar',pending,'No hay pacientes pendientes de programar.')}
         ${alertGroup('Pendientes de pago','Saldos que permanecen en rojo hasta pagarse por completo',debts,'No hay saldos pendientes de pago.')}
         ${alertGroup('Citas vencidas','Citas pasadas que aún no figuran como realizadas',expired,'No hay citas vencidas.')}
         ${alertGroup('Avisos: 2 y 1 día antes','Recordatorios de sesiones próximas',reminders,'No hay avisos para los próximos dos días.')}
@@ -859,8 +869,8 @@
     const lastSeven=Array.from({length:7},(_,i)=>({date:addDays(todayISO(),i-6)}));
     lastSeven.forEach(x=>x.value=netTotal(payments.filter(p=>p.date===x.date)));
     const max=Math.max(1,...lastSeven.map(x=>x.value));
-    const row=x=> `<tr><td><strong>${esc(prettyDate(x.date))}</strong></td><td>${esc(x.patientName||'Sin paciente')}</td><td>${x.session?`Sesión ${x.session}`:esc(x.concept||'Abono')}</td><td>${pill(x.method)}</td><td class="money">${dollars(x.amount)}</td><td class="money">${dollars(Number(x.feePos||0)+Number(x.feeBank||0))}</td><td class="money balance">${dollars(x.net??x.amount)}</td><td><button class="view-btn" data-action="delete-payment" data-id="${esc(x.id)}">Eliminar ${icon('close',12)}</button></td></tr>`;
-    return `${notice}<div class="page-head"><div><h1>Caja y movimientos.</h1><p class="subtitle">Pagos totales, parciales, comisiones y saldos por cobrar.</p></div><div class="title-split"><button class="btn" data-action="commission-settings">${icon('shield',14)} Comisiones de tarjeta</button><button class="btn primary" data-action="new-payment">${icon('plus')} Registrar pago</button></div></div>
+    const row=x=> `<tr><td><strong>${esc(prettyDate(x.date))}</strong></td><td>${esc(x.patientName||'Sin paciente')}</td><td>${x.session?`Sesión ${x.session}`:esc(x.concept||'Abono')}</td><td>${pill(x.method)}</td><td class="money">${dollars(x.amount)}</td><td class="money">${dollars(Number(x.feePos||0)+Number(x.feeBank||0)+Number(x.feeTasaCero||0))}</td><td class="money balance">${dollars(x.net??x.amount)}</td><td><button class="view-btn" data-action="delete-payment" data-id="${esc(x.id)}">Eliminar ${icon('close',12)}</button></td></tr>`;
+    return `${notice}<div class="page-head"><div><h1>Caja y movimientos.</h1><p class="subtitle">Pagos totales, parciales, comisiones y saldos por cobrar.</p></div><div class="title-split"><button class="btn" data-action="commission-settings">${icon('shield',14)} Comisiones de pago</button><button class="btn primary" data-action="new-payment">${icon('plus')} Registrar pago</button></div></div>
       <div class="metrics">
       ${metric('Cobrado hoy',dollars(paidTotal(todayPayments())),'coin','Importe bruto recibido')}
       ${metric('Cobrado este mes',dollars(paidTotal(m)),'wallet','Importe bruto recibido')}
@@ -882,18 +892,18 @@
       </div><div class="action-card"><div><h3>Respaldo de datos</h3><p>Descargá un respaldo y guardalo en un lugar seguro: contiene datos privados.</p></div><div class="hero-actions"><button class="btn sm" data-action="backup">${icon('download',14)} Exportar</button></div></div>`;
   }
   function commissionSettings() {
-    showModal('Comisiones de tarjeta','Definí las tasas predeterminadas. Se guardan como referencia para nuevos pagos.',
-    `<form id="commissionForm" class="form-grid"><div class="field"><label for="defaultPos">Comisión del POS (%)</label><input id="defaultPos" name="pos" type="number" min="0" max="100" step="0.01" required value="${settings.posPct}"></div>
-    <div class="field"><label for="defaultBank">Comisión del banco (%)</label><input id="defaultBank" name="bank" type="number" min="0" max="100" step="0.01" required value="${settings.bankPct}"></div>
-    <div class="field full"><p class="small-note">Ambos porcentajes se descuentan del monto bruto cobrado con tarjeta. No se modifica el saldo que el paciente pagó. Las tasas existentes de los pagos anteriores no se recalculan.</p></div></form>`,
-    `<button class="btn" data-action="close-modal">Cancelar</button><button class="btn primary" type="submit" form="commissionForm">Guardar comisiones ${icon('check',14)}</button>`);
+    showModal('Comisiones de pago','Configurá las tasas que aplican a los pagos con POS. Consultá sus valores en el contrato o liquidación de Davivienda. Se usan para pagos nuevos.',
+    `<form id="commissionForm" class="form-grid"><div class="field"><label for="defaultBank">Tarjeta · comisión banco (%)</label><input id="defaultBank" name="bank" type="number" min="0" max="100" step="0.01" required value="${settings.bankPct}"></div>
+    <div class="field"><label for="defaultTasa">Tasa Cero · comisión (%)</label><input id="defaultTasa" name="tasa" type="number" min="0" max="100" step="0.01" required value="${settings.tasaCeroPct}"></div>
+    <div class="field"><label for="defaultPos">Tasa Cero · uso del POS (%)</label><input id="defaultPos" name="pos" type="number" min="0" max="100" step="0.01" required value="${settings.posPct}"></div>
+    <div class="field full"><p class="small-note">Tarjeta descuenta la comisión bancaria. Tasa Cero descuenta su comisión más el uso del POS. Las tasas de pagos anteriores no se recalculan.</p></div></form>`,
+    `<button class="btn" data-action="close-modal">Cancelar</button><button class="btn primary" type="submit" form="commissionForm">Guardar tasas ${icon('check',14)}</button>`);
     $('#commissionForm').addEventListener('submit',e=>{
-      e.preventDefault();const f=new FormData(e.currentTarget); const pos=Number(f.get('pos')),bank=Number(f.get('bank'));
-      if(!Number.isFinite(pos)||!Number.isFinite(bank)||pos<0||bank<0||pos+bank>=100){alert('Ingresá porcentajes válidos. La suma debe ser menor que 100%.');return;}
-      settings={posPct:pos,bankPct:bank};saveSettings();closeModal();render();toast('Porcentajes guardados para futuros pagos.');
+      e.preventDefault();const f=new FormData(e.currentTarget),pos=Number(f.get('pos')),bank=Number(f.get('bank')),tasaCeroPct=Number(f.get('tasa'));
+      if(![pos,bank,tasaCeroPct].every(Number.isFinite)||[pos,bank,tasaCeroPct].some(x=>x<0)||Math.max(bank,tasaCeroPct+pos)>=100){alert('Ingresá porcentajes válidos; cada comisión aplicada debe sumar menos de 100%.');return;}
+      settings={posPct:pos,bankPct:bank,tasaCeroPct};saveSettings();closeModal();render();toast('Tasas guardadas para pagos futuros.');
     });
-  }
-  function paymentForm(pid, initialChargeId) {
+  }  function paymentForm(pid, initialChargeId) {
     if(!patients.length){alert('Primero registrá un paciente de prueba.');return;}
     const ch=initialChargeId?charges.find(x=>x.id===initialChargeId):null;
     const p=ch?getPatient(ch.patientId):pid?getPatient(pid):null;
@@ -909,10 +919,10 @@
        <div class="field full"><label for="payConcept">Descripción</label><input id="payConcept" name="concept" maxlength="140" placeholder="Ej.: Paquete de 6 sesiones" value="Tratamiento"></div>
        </div></div>
       <div class="field"><label for="payDate">Fecha del pago *</label><input id="payDate" type="date" name="date" required value="${todayISO()}"></div>
-      <div class="field"><label for="payMethod">Método de pago *</label><select name="method" id="payMethod"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option></select></div>
+      <div class="field"><label for="payMethod">Método de pago *</label><select name="method" id="payMethod"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option><option>Tasa Cero</option></select></div>
       <div class="field"><label for="payCoverage">Estado de este pago *</label><select name="coverage" id="payCoverage"><option value="total">Pago total</option><option value="partial">Pago parcial</option></select></div>
       <div class="field"><label for="payAmount">Cantidad recibida (USD) *</label><input id="payAmount" name="amount" type="number" min="0.01" max="999999" step="0.01" required placeholder="0.00" readonly></div>
-      <div id="cardFeeFields" class="field full" hidden><div class="form-grid"><div class="field"><label for="payPos">POS (%)</label><input id="payPos" name="pos" type="number" min="0" max="100" step="0.01" value="${settings.posPct}"></div><div class="field"><label for="payBank">Banco (%)</label><input id="payBank" name="bank" type="number" min="0" max="100" step="0.01" value="${settings.bankPct}"></div></div></div>
+      <div class="field full"><p class="small-note">Las comisiones se calculan con las tasas configuradas en Caja y movimientos.</p></div>
       <div class="field full"><div class="payment-preview" id="paymentPreview" aria-live="polite"></div></div>
       </form>`,
       `<button class="btn" data-action="close-modal">Cancelar</button><button type="submit" form="paymentForm" class="btn primary">${icon('check',14)} Guardar pago</button>`,true);
@@ -933,13 +943,13 @@
       const isTotal=coverage.value==='total';
       amount.readOnly=isTotal;
       if(isTotal||force){amount.value=val>0?val.toFixed(2):'';}
-      const feeBlock=$('#cardFeeFields'),card=method.value==='Tarjeta';feeBlock.hidden=!card;
+      const selectedMethod=method.value;
       const showExisting=mode.value==='existing';$('#existingChargeFields').hidden=!showExisting;$('#newChargeFields').hidden=showExisting;
       const entered=Number(amount.value)||0;
-      const p=card?validPercent($('#payPos').value):0,b=card?validPercent($('#payBank').value):0;
-      const fees=feeFor(entered,p,b),missing=Math.max(0,cents(val)-cents(entered))/100;
+      const p=selectedMethod==='Tasa Cero'?settings.posPct:0,b=selectedMethod==='Tarjeta'?settings.bankPct:0,t=selectedMethod==='Tasa Cero'?settings.tasaCeroPct:0;
+      const fees=feeFor(entered,p,b,t),missing=Math.max(0,cents(val)-cents(entered))/100;
       $('#chargeBalanceText').textContent=showExisting?`Saldo actual: ${dollars(val)}`:'';
-      $('#paymentPreview').innerHTML=`<div><small>Cobro pendiente antes de pagar</small><strong>${dollars(val)}</strong></div><div><small>Pago recibido (bruto)</small><strong>${dollars(entered)}</strong></div><div><small>POS + banco</small><strong>${dollars(fees.feePos+fees.feeBank)}</strong></div><div><small>Ingreso neto DEPIDERMWEB</small><strong>${dollars(fees.net)}</strong></div><div class="${missing>0?'owing':''}"><small>Quedará pendiente de pago</small><strong>${dollars(missing)}</strong></div>`;
+      $('#paymentPreview').innerHTML=`<div><small>Cobro pendiente antes de pagar</small><strong>${dollars(val)}</strong></div><div><small>Pago recibido (bruto)</small><strong>${dollars(entered)}</strong></div><div><small>Comisiones</small><strong>${dollars(fees.feePos+fees.feeBank+fees.feeTasaCero)}</strong></div><div><small>Ingreso neto DEPIDERMWEB</small><strong>${dollars(fees.net)}</strong></div><div class="${missing>0?'owing':''}"><small>Quedará pendiente de pago</small><strong>${dollars(missing)}</strong></div>`;
       previousBalance=String(val);
     }
     patient.addEventListener('change',()=>{availableCharges();refreshPrice(true)});
@@ -949,15 +959,13 @@
     total.addEventListener('input',()=>refreshPrice());
     amount.addEventListener('input',()=>refreshPrice());
     method.addEventListener('change',()=>refreshPrice());
-    $('#payPos').addEventListener('input',()=>refreshPrice());$('#payBank').addEventListener('input',()=>refreshPrice());
     availableCharges();refreshPrice(true);
     $('#paymentForm').addEventListener('submit',e=>{
       e.preventDefault();const f=new FormData(e.currentTarget),p=getPatient(String(f.get('patientId')||''));
       const paid=usd(f.get('amount')),date=String(f.get('date')||''),payMode=String(f.get('mode'));
       if(!p || !Number.isFinite(paid) || paid<=0 || paid>999999 || !/^\d{4}-\d{2}-\d{2}$/.test(date)){alert('Revisá el paciente, importe recibido y fecha.');return;}
       const paymentMethod=String(f.get('method')||'Efectivo');
-      const pos=paymentMethod==='Tarjeta'?Number(f.get('pos')):0,bank=paymentMethod==='Tarjeta'?Number(f.get('bank')):0;
-      if(!Number.isFinite(pos)||!Number.isFinite(bank)||pos<0||bank<0||pos+bank>=100){alert('Revisá las comisiones. La suma debe ser menor que 100%.');return;}
+      const pos=paymentMethod==='Tasa Cero'?settings.posPct:0,bank=paymentMethod==='Tarjeta'?settings.bankPct:0,tasaCeroPct=paymentMethod==='Tasa Cero'?settings.tasaCeroPct:0;
       let selected=payMode==='existing'?charges.find(x=>x.id===String(f.get('chargeId')||'')):null;
       if(payMode==='existing'&&(!selected||selected.patientId!==p.id||chargeBalanceCents(selected)<=0)){alert('Seleccioná un cobro con saldo pendiente.');return;}
       const owed=payMode==='new'?cents(f.get('total')):chargeBalanceCents(selected);
@@ -970,10 +978,10 @@
           session:Math.max(0,Math.min(6,Number(f.get('session'))||0)),concept:String(f.get('concept')||'Tratamiento').trim().slice(0,140)||'Tratamiento'};
         charges.push(selected);saveCharges();
       }
-      const fees=feeFor(paid,pos,bank);
+      const fees=feeFor(paid,pos,bank,tasaCeroPct);
       payments.push({id:id(),chargeId:selected.id,patientId:p.id,patientName:p.name,session:selected.session,
         amount:paid,date,method:paymentMethod,concept:payMode==='existing'?'Abono · '+selected.concept:selected.concept,
-        posPct:pos,bankPct:bank,feePos:fees.feePos,feeBank:fees.feeBank,net:fees.net});
+        posPct:pos,bankPct:bank,tasaCeroPct,feePos:fees.feePos,feeBank:fees.feeBank,feeTasaCero:fees.feeTasaCero,net:fees.net});
       savePayments();closeModal();render();
       toast(chargeBalanceCents(selected)>0?`Pago parcial registrado. Falta cobrar ${dollars(chargeBalanceCents(selected)/100)}.`:'Pago total registrado. Saldo cancelado.');
     });
@@ -994,10 +1002,10 @@
       patients=normalizeClients(raw.patients);
       payments=raw.payments.filter(x=>x&&typeof x==='object'&&typeof x.id==='string'&&typeof x.amount==='number'&&x.amount>0&&x.amount<=999999&&typeof x.date==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x.date)).map(x=>({
         id:String(x.id).slice(0,100),patientId:String(x.patientId||'').slice(0,100),patientName:String(x.patientName||'').slice(0,120),session:Math.max(0,Math.min(6,Number(x.session)||0)),amount:usd(x.amount),date:x.date,method:String(x.method||'Efectivo').slice(0,50),concept:String(x.concept||'Pago de sesión').slice(0,140),
-        chargeId:String(x.chargeId||''),posPct:validPercent(x.posPct),bankPct:validPercent(x.bankPct),feePos:usd(x.feePos),feeBank:usd(x.feeBank),net:Number.isFinite(Number(x.net))?usd(x.net):usd(x.amount)
+        chargeId:String(x.chargeId||''),posPct:validPercent(x.posPct),bankPct:validPercent(x.bankPct),tasaCeroPct:validPercent(x.tasaCeroPct),feePos:usd(x.feePos),feeBank:usd(x.feeBank),feeTasaCero:usd(x.feeTasaCero),net:Number.isFinite(Number(x.net))?usd(x.net):usd(x.amount)
       }));
       charges=normalizeCharges(raw.charges||[]);
-      settings={posPct:validPercent(raw.settings?.posPct),bankPct:validPercent(raw.settings?.bankPct)};
+      settings={posPct:validPercent(raw.settings?.posPct),bankPct:validPercent(raw.settings?.bankPct),tasaCeroPct:validPercent(raw.settings?.tasaCeroPct)};
       save();savePayments();saveCharges();saveSettings();render();toast('Respaldo de datos restaurado.');
     }catch(e){alert('No se pudo importar: '+e.message)}finally{input.value='';}
   }
@@ -1114,3 +1122,8 @@
 </script>
 </body>
 </html>
+
+
+
+
+
