@@ -752,7 +752,7 @@
       <div class="field"><label for="phone">Número de contacto *</label><input id="phone" name="phone" type="tel" maxlength="30" required autocomplete="off" value="${esc(p?.phone||'')}" placeholder="0000-0000"></div>
       <div class="field full"><label for="notes">Observaciones</label><textarea name="notes" id="notes" maxlength="2000" placeholder="Notas generales sobre la atención...">${esc(p?.notes||'')}</textarea></div>
       <div class="field full"><span class="small-note">* Campos obligatorios. En esta versión usá únicamente datos de prueba.</span></div></form>`,
-      `<button class="btn" data-action="close-modal">Cancelar</button><button class="btn primary" type="submit" form="patientForm">${p?'Guardar cambios':'Guardar y agendar'} ${icon('arrow',14)}</button>`);
+      p?`<button class="btn" data-action="close-modal">Cancelar</button><button class="btn primary" type="submit" form="patientForm">Guardar cambios ${icon('check',14)}</button>`:`<button class="btn" data-action="close-modal">Cancelar</button><button class="btn" type="submit" name="afterSave" value="schedule" form="patientForm">Guardar y agendar ${icon('calendar',14)}</button><button class="btn primary" type="submit" name="afterSave" value="pay" form="patientForm">Guardar y registrar pago ${icon('wallet',14)}</button>`);
     $('#patientForm').addEventListener('submit', e=>{
       e.preventDefault();
       const form=new FormData(e.currentTarget);
@@ -760,7 +760,11 @@
       if(!name||!phone||!Number.isFinite(age)||age<0||age>120) return;
       if(p){ p.name=name; p.age=age; p.phone=phone; p.notes=String(form.get('notes')||'').trim(); }
       else { const item={id:id(),name,age,phone,notes:String(form.get('notes')||'').trim(),createdAt:todayISO(),sessions:freshSessions()};patients.push(item);pid=item.id; }
-      save();render();patientDetail(pid);
+      save();render();
+      const next=e.submitter?.value;
+      if(next==='schedule'&&!p)sessionForm(pid,1);
+      else if(next==='pay')paymentForm(pid);
+      else patientDetail(pid);
     });
   }
   function patientDetail(pid) {
