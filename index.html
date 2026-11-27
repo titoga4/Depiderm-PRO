@@ -819,7 +819,7 @@
       <div class="field"><label for="sessionDuration">Duración prevista (minutos) *</label><input type="number" id="sessionDuration" name="duration" min="5" max="480" step="5" required value="${esc(s.plannedMinutes||45)}"></div>
       <div class="field"><label>Horario estimado</label><div id="endTimePreview" class="session-summary" aria-live="polite">—</div></div>
       <div class="field full"><span class="small-note">La duración prevista ayuda a evitar cruces de horario. Cuando marcás la sesión como realizada, podrás registrar cuánto tiempo tomó realmente. Las alertas aparecen cuando falten 2 días o 1 día.</span></div></form>`,
-      `<button class="btn" data-action="open-patient" data-id="${esc(pid)}">Volver</button><button class="btn primary" type="submit" form="sessionForm">Guardar cita ${icon('check',15)}</button>`,true);
+      `<button class="btn" data-action="open-patient" data-id="${esc(pid)}">Volver</button><button class="btn" type="submit" name="afterSave" value="stay" form="sessionForm">Guardar cita ${icon('check',15)}</button><button class="btn primary" type="submit" name="afterSave" value="pay" form="sessionForm">Guardar y registrar pago ${icon('wallet',14)}</button>`,true);
     const updateEnd=()=> {const time=$('#sessionTime').value,mins=Number($('#sessionDuration').value),start=timeToMinutes(time);$('#endTimePreview').textContent=Number.isFinite(start)&&mins>=5&&mins<=480&&start+mins<=1440?formatInterval(time,mins):'Verificá hora y duración';};
     $('#sessionTime').addEventListener('input',updateEnd);$('#sessionDuration').addEventListener('input',updateEnd);updateEnd();
     $('#sessionAreas').addEventListener('input',()=>{
@@ -836,7 +836,10 @@
       const conflicts=allAppointments().filter(a=>!(a.patient.id===pid&&a.session.n===num)&&a.session.date===date&&start<timeToMinutes(a.session.time)+(asMinutes(a.session.plannedMinutes)||45)&&end>timeToMinutes(a.session.time));
       if(conflicts.length&&!confirm(`Aviso: el horario se cruza con ${plural(conflicts.length,'cita')} de ${conflicts.map(a=>a.patient.name).join(', ')}. ¿Querés programar igualmente?`))return;
       s.date=date;s.time=time;s.status='scheduled';s.areas=areas;s.plannedMinutes=duration;s.actualMinutes=null;
-      save();render();patientDetail(pid);toast('Cita guardada: áreas y duración registradas.');checkBrowserReminders();
+      save();closeModal();render();
+      if(e.submitter?.value==='pay'){paymentForm(pid);toast('Cita guardada. Ahora podés registrar el pago.');}
+      else {patientDetail(pid);toast('Cita guardada: áreas y duración registradas.');}
+      checkBrowserReminders();
     });
   }
   function completionForm(pid,num,edit=false) {
